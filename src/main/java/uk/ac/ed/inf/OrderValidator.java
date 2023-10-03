@@ -1,6 +1,7 @@
 package uk.ac.ed.inf;
 
 
+import uk.ac.ed.inf.ilp.constant.OrderStatus;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 import uk.ac.ed.inf.ilp.interfaces.OrderValidation;
@@ -60,20 +61,33 @@ public class OrderValidator implements OrderValidation
         int firstPizzaIn = 0;
         int currentPizzaIn = 0;
         boolean restaurantOpen = true;
+        boolean totalIsCorrect = true;
+        int orderTotal = 0;
+
 
         // checks if all pizzas are valid, checks if pizza from more than one restaurant, checks if restaurant is open
 
-        for(int z = 0; z < orderToValidate.getPizzasInOrder().length; z++)
+        for(int z = 0; z < orderToValidate.getPizzasInOrder().length && restaurantOpen && totalIsCorrect; z++)
         {
             for (int x = 0; !pizzaFound[z] && x < definedRestaurants.length; x++)
             {
-                for (int y = 0; y < definedRestaurants[x].menu().length && restaurantOpen; y++)
+                for (int y = 0; y < definedRestaurants[x].menu().length; y++)
                 {
 
                     if (orderToValidate.getPizzasInOrder()[z].name().equals(definedRestaurants[x].menu()[y].name()))
                     {
                         if(y == 0)
                         {
+                            if(orderToValidate.getPizzasInOrder()[z].priceInPence() != definedRestaurants[x].menu()[y].priceInPence())
+                            {
+                                orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
+                                totalIsCorrect = false;
+                                break;
+                            }
+                            else
+                            {
+                                orderTotal += orderToValidate.getPizzasInOrder()[z].priceInPence();
+                            }
                             List<DayOfWeek> RestaurantDays = Arrays.stream(definedRestaurants[x].openingDays()).toList();
                             if(!RestaurantDays.contains(orderToValidate.getOrderDate().getDayOfWeek()))
                             {
@@ -104,10 +118,18 @@ public class OrderValidator implements OrderValidation
             }
 
         }
-
+        if(orderToValidate.getPriceTotalInPence() != orderTotal + 100)
+        {
+            orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
+        }
         if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.NO_ERROR);
+            orderToValidate.setOrderStatus(OrderStatus.VALID_BUT_NOT_DELIVERED);
+        }
+        else
+        {
+            orderToValidate.setOrderStatus(OrderStatus.INVALID);
         }
         return orderToValidate;
     }

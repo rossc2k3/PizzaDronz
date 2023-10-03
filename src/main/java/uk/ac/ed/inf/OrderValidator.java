@@ -77,26 +77,26 @@ public class OrderValidator implements OrderValidation
 
                     if (orderToValidate.getPizzasInOrder()[z].name().equals(definedRestaurants[x].menu()[y].name()))
                     {
-                        if(y == 0)
+
+
+                        if(orderToValidate.getPizzasInOrder()[z].priceInPence() != definedRestaurants[x].menu()[y].priceInPence())
                         {
-                            if(orderToValidate.getPizzasInOrder()[z].priceInPence() != definedRestaurants[x].menu()[y].priceInPence())
-                            {
                                 orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
                                 totalIsCorrect = false;
                                 break;
-                            }
-                            else
-                            {
-                                orderTotal += orderToValidate.getPizzasInOrder()[z].priceInPence();
-                            }
-                            List<DayOfWeek> RestaurantDays = Arrays.stream(definedRestaurants[x].openingDays()).toList();
-                            if(!RestaurantDays.contains(orderToValidate.getOrderDate().getDayOfWeek()))
-                            {
-                                orderToValidate.setOrderValidationCode(OrderValidationCode.RESTAURANT_CLOSED);
-                                restaurantOpen = false;
-                                break;
-                            }
                         }
+                        else
+                        {
+                                orderTotal += orderToValidate.getPizzasInOrder()[z].priceInPence();
+                        }
+                        List<DayOfWeek> RestaurantDays = Arrays.stream(definedRestaurants[x].openingDays()).toList();
+                        if(!RestaurantDays.contains(orderToValidate.getOrderDate().getDayOfWeek()))
+                        {
+                            orderToValidate.setOrderValidationCode(OrderValidationCode.RESTAURANT_CLOSED);
+                            restaurantOpen = false;
+                            break;
+                        }
+
                         if(z == 0)
                         {
                             firstPizzaIn = x;

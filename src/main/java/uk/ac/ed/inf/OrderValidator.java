@@ -2,6 +2,7 @@ package uk.ac.ed.inf;
 
 
 import uk.ac.ed.inf.ilp.constant.OrderStatus;
+import uk.ac.ed.inf.ilp.constant.SystemConstants;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 import uk.ac.ed.inf.ilp.interfaces.OrderValidation;
@@ -50,7 +51,7 @@ public class OrderValidator implements OrderValidation
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.EXPIRY_DATE_INVALID);
         }
-        if(!((orderToValidate.getPizzasInOrder().length <= 4)))
+        if(!((orderToValidate.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER)))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.MAX_PIZZA_COUNT_EXCEEDED);
         }
@@ -118,7 +119,7 @@ public class OrderValidator implements OrderValidation
             }
 
         }
-        if(orderToValidate.getPriceTotalInPence() != orderTotal + 100)
+        if(orderToValidate.getPriceTotalInPence() != orderTotal + SystemConstants.ORDER_CHARGE_IN_PENCE)
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
         }

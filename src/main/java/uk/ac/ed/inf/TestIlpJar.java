@@ -21,9 +21,10 @@ public class TestIlpJar {
 
         order.setCreditCardInformation(
                 new CreditCardInformation(
-                        "1212121212121212",
-                        String.format("%02d/%02d", ThreadLocalRandom.current().nextInt(1, 12), ThreadLocalRandom.current().nextInt(24, 29)),
-                        "222"
+                        "1111111111111111",
+                        String.format("%02d/%02d", ThreadLocalRandom.current().nextInt(01, 12),
+                                ThreadLocalRandom.current().nextInt(24, 29)),
+                        "991"
                 )
         );
 
@@ -44,10 +45,8 @@ public class TestIlpJar {
                                 new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.FRIDAY},
                                 new Pizza[]{new Pizza("Pizza A", 2300)})
                         });
-        System.out.println(YearMonth.parse(validatedOrder.getCreditCardInformation().getCreditCardExpiry(), DateTimeFormatter.ofPattern("MM/yy")));
-        System.out.println("card number:" + validatedOrder.getCreditCardInformation().getCreditCardNumber() + ". order validation resulted in status: " +
-                validatedOrder.getOrderStatus() +
-                " and validation code: " +
-                validatedOrder.getOrderValidationCode());
+
+        System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +
+                " and validation code: " + validatedOrder.getOrderValidationCode());
     }
 }

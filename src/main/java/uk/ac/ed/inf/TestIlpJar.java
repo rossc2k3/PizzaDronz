@@ -20,7 +20,7 @@ public class TestIlpJar {
         order.setCreditCardInformation(
                 new CreditCardInformation(
                         "1111111111111111",
-                        String.format("%02d/%02d", ThreadLocalRandom.current().nextInt(01, 12),
+                        String.format("%02d/%02d", ThreadLocalRandom.current().nextInt(1, 12),
                                 ThreadLocalRandom.current().nextInt(24, 29)),
                         "991"
                 )

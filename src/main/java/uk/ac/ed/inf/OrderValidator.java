@@ -12,6 +12,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +37,9 @@ public class OrderValidator implements OrderValidation
         {
             throw new RuntimeException(e);
         }
-        Date currentDate = new Date();
+        //need to format to LocalDate to be able to compare to "current date" (order date).
+        LocalDate formattedExpiryLocal = formattedExpiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate currentDate = orderToValidate.getOrderDate();
 
 
         if(!orderToValidate.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$"))
@@ -47,7 +51,7 @@ public class OrderValidator implements OrderValidation
             orderToValidate.setOrderValidationCode(OrderValidationCode.CVV_INVALID);
         }
         //change YearMonth.now to order date pls :3
-        if(!orderToValidate.getCreditCardInformation().getCreditCardExpiry().matches("([1][0-2]|[0][1-9])/([0-9][0-9])") || formattedExpiry.before(currentDate))
+        if(!orderToValidate.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$") || formattedExpiryLocal.isBefore(currentDate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.EXPIRY_DATE_INVALID);
         }

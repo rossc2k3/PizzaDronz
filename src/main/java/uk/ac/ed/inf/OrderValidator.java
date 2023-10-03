@@ -9,7 +9,10 @@ import uk.ac.ed.inf.ilp.constant.OrderValidationCode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 
 public class OrderValidator implements OrderValidation
@@ -52,66 +55,55 @@ public class OrderValidator implements OrderValidation
         }
 
 
-        //checks if pizza from more than one restaurant.
-        boolean fromOneRestaurant = true;
         Boolean[] pizzaFound = new Boolean[orderToValidate.getPizzasInOrder().length];
+        Arrays.fill(pizzaFound, false);
         int firstPizzaIn = 0;
-        int currentPizzaIn = -1;
-        // checks if all pizzas are valid, also checks and stores where the first pizzas is.
+        int currentPizzaIn = 0;
+        boolean restaurantOpen = true;
+
+        // checks if all pizzas are valid, checks if pizza from more than one restaurant, checks if restaurant is open
+
         for(int z = 0; z < orderToValidate.getPizzasInOrder().length; z++)
         {
             for (int x = 0; !pizzaFound[z] && x < definedRestaurants.length; x++)
             {
-                for (int y = 0; y < definedRestaurants[x].menu().length; y++)
+                for (int y = 0; y < definedRestaurants[x].menu().length && restaurantOpen; y++)
                 {
 
                     if (orderToValidate.getPizzasInOrder()[z].name().equals(definedRestaurants[x].menu()[y].name()))
                     {
+                        if(y == 0)
+                        {
+                            List<DayOfWeek> RestaurantDays = Arrays.stream(definedRestaurants[x].openingDays()).toList();
+                            if(!RestaurantDays.contains(orderToValidate.getOrderDate().getDayOfWeek()))
+                            {
+                                orderToValidate.setOrderValidationCode(OrderValidationCode.RESTAURANT_CLOSED);
+                                restaurantOpen = false;
+                                break;
+                            }
+                        }
                         if(z == 0)
                         {
                             firstPizzaIn = x;
                         }
+                        currentPizzaIn = x;
                         pizzaFound[z] = true;
+                        break;
                     }
                 }
             }
-        }
-        for (int zz = 0; zz < orderToValidate.getPizzasInOrder().length; zz++)
-        {
-            if (!pizzaFound[zz])
+            if(!pizzaFound[z])
             {
                 orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_NOT_DEFINED);
+                break;
             }
-        }
-        //checks every subsequent pizza to see if its name is found in another restaurant. we use the fact that each
-        //name is unique to be able to use this.
-        //only need to check the restaurant that the first pizza is in.
-
-        for(int i = 1; i < orderToValidate.getPizzasInOrder().length; i++)
-        {
-
-            for(int j = 0; j < definedRestaurants[firstPizzaIn].menu().length; j++)
-            {
-                if (orderToValidate.getPizzasInOrder()[i].name().equals(definedRestaurants[firstPizzaIn].menu()[j].name()))
-                {
-                    currentPizzaIn = firstPizzaIn;
-
-                }
-            }
-            if(currentPizzaIn == -1)
+            if (currentPizzaIn != firstPizzaIn)
             {
                 orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS);
                 break;
             }
-            else
-            {
-                currentPizzaIn = -1;
-            }
-
 
         }
-
-
 
         if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
         {

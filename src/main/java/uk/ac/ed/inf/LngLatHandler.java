@@ -31,13 +31,21 @@ public class LngLatHandler implements LngLatHandling
     public boolean isInRegion(LngLat position, NamedRegion region)
     {
         Path2D.Double polygon = new Path2D.Double();
-        polygon.moveTo(region.vertices()[0].lng(), region.vertices()[1].lng());
-        return false;
+        polygon.moveTo(region.vertices()[0].lat(), region.vertices()[0].lng());
+        for(int i = 1; i < region.vertices().length; i++)
+        {
+            polygon.lineTo(region.vertices()[i].lat(), region.vertices()[i].lng());
+        }
+        polygon.closePath();
+        return polygon.contains(position.lat(), position.lng());
     }
 
     @Override
     public LngLat nextPosition(LngLat startPosition, double angle)
     {
-        return null;
+        double diffLat = SystemConstants.DRONE_MOVE_DISTANCE * Math.cos(angle);
+        double diffLng = SystemConstants.DRONE_MOVE_DISTANCE * Math.sin(angle) / Math.cos(Math.toRadians(startPosition.lat()));
+        LngLat endPosition = new LngLat((startPosition.lng() + diffLng), (startPosition.lat()) + diffLat);
+        return endPosition;
     }
 }

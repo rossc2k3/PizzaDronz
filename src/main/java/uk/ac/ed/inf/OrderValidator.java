@@ -22,6 +22,7 @@ import java.util.List;
 public class OrderValidator implements OrderValidation
 {
 
+
     @Override
     public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)
     {
@@ -50,7 +51,7 @@ public class OrderValidator implements OrderValidation
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.CVV_INVALID);
         }
-        //change YearMonth.now to order date pls :3
+
         if(!orderToValidate.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$") || formattedExpiryLocal.isBefore(currentDate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.EXPIRY_DATE_INVALID);
@@ -72,9 +73,11 @@ public class OrderValidator implements OrderValidation
 
         // checks if all pizzas are valid, checks if pizza from more than one restaurant, checks if restaurant is open
 
-        for(int z = 0; z < orderToValidate.getPizzasInOrder().length && restaurantOpen && totalIsCorrect; z++)
+        for(int z = 0; z < orderToValidate.getPizzasInOrder().length && restaurantOpen && totalIsCorrect &&
+                orderToValidate.getOrderValidationCode() == OrderValidationCode.UNDEFINED; z++)
         {
-            for (int x = 0; !pizzaFound[z] && x < definedRestaurants.length; x++)
+            for (int x = 0; !pizzaFound[z] && x < definedRestaurants.length &&
+                    orderToValidate.getOrderValidationCode() == OrderValidationCode.UNDEFINED; x++)
             {
                 for (int y = 0; y < definedRestaurants[x].menu().length; y++)
                 {
@@ -127,6 +130,10 @@ public class OrderValidator implements OrderValidation
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
         }
+
+        //if, by this point, there have been no changed to order code (no errors), set to no error code.
+        //set status to valid. if not, set order status to invalid.
+
         if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.NO_ERROR);

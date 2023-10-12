@@ -43,9 +43,9 @@ public class LngLatHandler implements LngLatHandling
     @Override
     public LngLat nextPosition(LngLat startPosition, double angle)
     {
-        double diffLat = SystemConstants.DRONE_MOVE_DISTANCE * Math.cos(angle);
-        double diffLng = SystemConstants.DRONE_MOVE_DISTANCE * Math.sin(angle) / Math.cos(Math.toRadians(startPosition.lat()));
-        LngLat endPosition = new LngLat((startPosition.lng() + diffLng), (startPosition.lat()) + diffLat);
-        return endPosition;
+        double angleRad = Math.toRadians(angle);
+        double diffLat = Math.toRadians(SystemConstants.DRONE_MOVE_DISTANCE) * Math.cos(angleRad);
+        double diffLng = Math.toRadians(SystemConstants.DRONE_MOVE_DISTANCE) * Math.sin(angleRad);
+        return new LngLat((startPosition.lng() + diffLng), (startPosition.lat()) + diffLat);
     }
 }

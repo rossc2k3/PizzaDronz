@@ -27,20 +27,12 @@ public class OrderValidator implements OrderValidation
 
     public boolean cardNumValid(Order order)
     {
-        if(!order.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$"))
-        {
-            return false;
-        }
-        return true;
+        return order.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$");
     }
 
     public boolean cardCvvValid(Order order)
     {
-        if(!order.getCreditCardInformation().getCvv().matches("^[0-9]{3}$"))
-        {
-            return false;
-        }
-        return true;
+        return order.getCreditCardInformation().getCvv().matches("^[0-9]{3}$");
     }
 
     public boolean cardDateValid(Order order)
@@ -61,21 +53,13 @@ public class OrderValidator implements OrderValidation
         LocalDate formattedExpiryLocal = formattedExpiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate currentDate = order.getOrderDate();
 
-        if(!order.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$")
-                || formattedExpiryLocal.isBefore(currentDate))
-        {
-            return false;
-        }
-        return true;
+        return order.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$")
+                && !formattedExpiryLocal.isBefore(currentDate);
     }
 
     public boolean pizzasInRange(Order order)
     {
-        if(!(order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER))
-        {
-            return false;
-        }
-        return true;
+        return order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER;
     }
 
     public boolean pizzasExist(Order order, Restaurant[] restaurants)
@@ -86,6 +70,7 @@ public class OrderValidator implements OrderValidation
         return restaurantPizzas.containsAll(pizzaNames);
     }
 
+    //doesn't work!!
     public boolean sameRestaurant(Order order, Restaurant[] restaurants)
     {
         Set<String> restaurantNames = Arrays.stream(restaurants).flatMap(restaurant -> Arrays.stream(restaurant.menu()))

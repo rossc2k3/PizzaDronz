@@ -4,6 +4,7 @@ package uk.ac.ed.inf;
 import uk.ac.ed.inf.ilp.constant.OrderStatus;
 import uk.ac.ed.inf.ilp.constant.SystemConstants;
 import uk.ac.ed.inf.ilp.data.Order;
+import uk.ac.ed.inf.ilp.data.Pizza;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 import uk.ac.ed.inf.ilp.interfaces.OrderValidation;
 import uk.ac.ed.inf.ilp.constant.OrderValidationCode;
@@ -23,12 +24,46 @@ public class OrderValidator implements OrderValidation
 {
 
 
-    @Override
-    public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)
+    /**
+     * will likely be refactored into seperate functions for cw2.
+     *
+     * checks that the order fulfills the following parameters:
+     * card number is valid (16 digits numerical)
+     * cvv is valid (3 digits numerical)
+     * expiry date is valid (in date, formatted as MM/yy)
+     * correct price total, including delivery charge
+     * pizza is defined in a restaurant
+     * order doesn't exceed max pizza count (given in system constants)
+     * order is only from one restaurant
+     * restaurant is open
+     * @param orderToValidate       the order we want to check is valid
+     * @param definedRestaurants    list of restaurants to check the pizzas against
+     * @return                      the order. the function will also set its status (valid, invalid) and provide an
+     *                              error code where applicable
+     */
+
+    public boolean cardNumValid(Order order)
     {
-        //gets date in correct formatting
+        if(!order.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$"))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean cardCvvValid(Order order)
+    {
+        if(!order.getCreditCardInformation().getCvv().matches("^[0-9]{3}$"))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean cardDateValid(Order order)
+    {
         DateFormat dateformat = new SimpleDateFormat("MM/yy");
-        String expiry = orderToValidate.getCreditCardInformation().getCreditCardExpiry();
+        String expiry = order.getCreditCardInformation().getCreditCardExpiry();
         Date formattedExpiry;
         try
         {
@@ -38,25 +73,51 @@ public class OrderValidator implements OrderValidation
         {
             throw new RuntimeException(e);
         }
+
         //need to format to LocalDate to be able to compare to "current date" (order date).
         LocalDate formattedExpiryLocal = formattedExpiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate currentDate = orderToValidate.getOrderDate();
+        LocalDate currentDate = order.getOrderDate();
 
+        if(!order.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$")
+                || formattedExpiryLocal.isBefore(currentDate))
+        {
+            return false;
+        }
+        return true;
+    }
 
-        if(!orderToValidate.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$"))
+    public boolean pizzasInRange(Order order)
+    {
+        if(!(order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean correctTotal(Order order, Restaurant[] restaurants)
+    {
+        int totalPrice = Arrays.stream(order.getPizzasInOrder()).mapToInt(Pizza::priceInPence).sum();
+
+    }
+
+    @Override
+    public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)
+    {
+
+        if(!cardNumValid(orderToValidate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.CARD_NUMBER_INVALID);
         }
-        if(!orderToValidate.getCreditCardInformation().getCvv().matches("^[0-9]{3}$"))
+        if(!cardCvvValid(orderToValidate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.CVV_INVALID);
         }
-
-        if(!orderToValidate.getCreditCardInformation().getCreditCardExpiry().matches("^([1][0-2]|[0][1-9])/([0-9][0-9])$") || formattedExpiryLocal.isBefore(currentDate))
+        if(!cardDateValid(orderToValidate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.EXPIRY_DATE_INVALID);
         }
-        if(!((orderToValidate.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER)))
+        if(!pizzasInRange(orderToValidate))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.MAX_PIZZA_COUNT_EXCEEDED);
         }
@@ -86,7 +147,8 @@ public class OrderValidator implements OrderValidation
                     {
 
 
-                        if(orderToValidate.getPizzasInOrder()[z].priceInPence() != definedRestaurants[x].menu()[y].priceInPence())
+                        if(orderToValidate.getPizzasInOrder()[z].priceInPence() !=
+                                definedRestaurants[x].menu()[y].priceInPence())
                         {
                                 orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
                                 totalIsCorrect = false;

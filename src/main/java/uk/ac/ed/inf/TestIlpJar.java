@@ -34,15 +34,15 @@ public class TestIlpJar {
         // get a random restaurant
 
         // and load the order items plus the price
-        order.setPizzasInOrder(new Pizza[]{new Pizza("A", 1212)});
-        order.setPriceTotalInPence(1212 + SystemConstants.ORDER_CHARGE_IN_PENCE);
+        order.setPizzasInOrder(new Pizza[]{new Pizza("B", 1111)});
+        order.setPriceTotalInPence(1111 + SystemConstants.ORDER_CHARGE_IN_PENCE);
 
         var validatedOrder =
                 new OrderValidator().validateOrder(order,
                         new Restaurant[]{new Restaurant("myRestaurant",
                                 new LngLat(55.945535152517735, -3.1912869215011597),
                                 new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.FRIDAY},
-                                new Pizza[]{new Pizza("A", 1212)})
+                                new Pizza[]{new Pizza("A", 1111)})
                         });
 
         System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +

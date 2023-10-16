@@ -244,7 +244,7 @@ public class OrderValidator implements OrderValidation
         //if, by this point, there have been no changed to order code (no errors), set to no error code.
         //set status to valid. if not, set order status to invalid.
 
-        if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
+        /*if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.NO_ERROR);
             orderToValidate.setOrderStatus(OrderStatus.VALID_BUT_NOT_DELIVERED);
@@ -253,7 +253,7 @@ public class OrderValidator implements OrderValidation
         {
             orderToValidate.setOrderStatus(OrderStatus.INVALID);
         }
-        return orderToValidate;
+        return orderToValidate;*/
     }
 
 

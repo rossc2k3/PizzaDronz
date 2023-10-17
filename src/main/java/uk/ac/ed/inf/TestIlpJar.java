@@ -8,7 +8,10 @@ import uk.ac.ed.inf.ilp.data.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TestIlpJar {
     public static void main(String[] args) {
@@ -22,7 +25,7 @@ public class TestIlpJar {
                 new CreditCardInformation(
                         "1111111111111111",
                         String.format("%02d/%02d", ThreadLocalRandom.current().nextInt(1, 12),
-                                ThreadLocalRandom.current().nextInt(24, 29)),
+                                ThreadLocalRandom.current().nextInt(43, 44)),
                         "991"
                 )
         );
@@ -34,17 +37,40 @@ public class TestIlpJar {
         // get a random restaurant
 
         // and load the order items plus the price
-        order.setPizzasInOrder(new Pizza[]{new Pizza("B", 1111)});
-        order.setPriceTotalInPence(1111 + SystemConstants.ORDER_CHARGE_IN_PENCE);
+
+        order.setPizzasInOrder
+                (
+                        new Pizza[]
+                        {
+                                new Pizza("A", 1111),
+                                new Pizza("A", 1111)
+                        }
+
+                );
+
+        order.setPriceTotalInPence(2222 + SystemConstants.ORDER_CHARGE_IN_PENCE);
+
+        var restaurants = new Restaurant[]
+                {
+                        new Restaurant("myRestaurant",
+                                new LngLat(55.945535152517735, -3.1912869215011597),
+                                new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.FRIDAY},
+                                new Pizza[]{new Pizza("A", 1111)}),
+
+                        new Restaurant("restaurantTest",
+                                new LngLat(55, -3),
+                                new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.FRIDAY},
+                                new Pizza[]{new Pizza("B", 1111)})
+
+
+                };
 
         var validatedOrder =
                 new OrderValidator().validateOrder(order,
-                        new Restaurant[]{new Restaurant("myRestaurant",
-                                new LngLat(55.945535152517735, -3.1912869215011597),
-                                new DayOfWeek[]{DayOfWeek.MONDAY, DayOfWeek.FRIDAY},
-                                new Pizza[]{new Pizza("A", 1111)})
-                        });
+                                restaurants);
 
+        System.out.println(order.getOrderDate());
+        System.out.println(order.getCreditCardInformation().getCreditCardExpiry());
         System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +
                 " and validation code: " + validatedOrder.getOrderValidationCode());
     }

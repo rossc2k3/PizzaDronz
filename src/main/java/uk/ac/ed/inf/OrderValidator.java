@@ -27,16 +27,28 @@ public class OrderValidator implements OrderValidation
 
     public boolean cardNumValid(Order order)
     {
+        if(order.getCreditCardInformation().getCreditCardNumber() == null)
+        {
+            return false;
+        }
         return order.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$");
     }
 
     public boolean cardCvvValid(Order order)
     {
+        if(order.getCreditCardInformation().getCvv() == null)
+        {
+            return false;
+        }
         return order.getCreditCardInformation().getCvv().matches("^[0-9]{3}$");
     }
 
     public boolean cardDateValid(Order order)
     {
+        if(order.getCreditCardInformation().getCreditCardExpiry() == null)
+        {
+            return false;
+        }
         DateFormat dateformat = new SimpleDateFormat("MM/yy");
         String expiry = order.getCreditCardInformation().getCreditCardExpiry();
         Date formattedExpiry;
@@ -46,7 +58,8 @@ public class OrderValidator implements OrderValidation
         }
         catch (ParseException e)
         {
-            throw new RuntimeException(e);
+            return false;
+            //throw new RuntimeException(e);
         }
 
         //need to format to LocalDate to be able to compare to "current date" (order date).
@@ -70,30 +83,55 @@ public class OrderValidator implements OrderValidation
         return restaurantPizzas.containsAll(pizzaNames);
     }
 
-    //doesn't work!!
+
     public boolean sameRestaurant(Order order, Restaurant[] restaurants)
     {
-        Set<String> restaurantNames = Arrays.stream(restaurants).flatMap(restaurant -> Arrays.stream(restaurant.menu()))
-                .map(Pizza::name).collect(Collectors.toSet());
-        return restaurantNames.size() == 1;
+
+        int[] pizzaLocations = new int[order.getPizzasInOrder().length];
+        Arrays.fill(pizzaLocations, 0);
+        for(int z = 0; z < order.getPizzasInOrder().length; z++)
+        {
+            for (int x = 0; x < restaurants.length; x++)
+            {
+                for (int y = 0; y < restaurants[x].menu().length; y++)
+                {
+
+                    if (order.getPizzasInOrder()[z].name().equals(restaurants[x].menu()[y].name()))
+                    {
+                        pizzaLocations[z] = x;
+                        break;
+                    }
+                }
+            }
+        }
+        return Arrays.stream(pizzaLocations).allMatch(num -> num == pizzaLocations[0]);
     }
 
     public boolean correctTotal(Order order, Restaurant[] restaurants)
     {
-        Map<String, Integer> pizzasWithPrices = Arrays.stream(restaurants).flatMap
-                (restaurant -> Arrays.stream(restaurant.menu())).collect
-                (Collectors.toMap(Pizza::name, Pizza::priceInPence));
+        int orderTotal = Arrays.stream(order.getPizzasInOrder())
+                .flatMap(orderPizza ->
+                        Arrays.stream(restaurants)
+                                .flatMap(restaurant -> Arrays.stream(restaurant.menu())
+                                        .filter(menuPizza -> orderPizza.name().equals(menuPizza.name())
+                                                && orderPizza.priceInPence() == menuPizza.priceInPence())))
+                .mapToInt(Pizza::priceInPence)
+                .sum();
 
-        return Arrays.stream(order.getPizzasInOrder()).allMatch(pizza ->
-            {Integer restaurantPrice = pizzasWithPrices.get(pizza.name());
-            return restaurantPrice == pizza.priceInPence();});
+        return order.getPriceTotalInPence() == orderTotal + SystemConstants.ORDER_CHARGE_IN_PENCE;
+
     }
 
-    //implement restaurantOpen
 
     public boolean restaurantOpen(Order order, Restaurant[] restaurants)
     {
-        return true;
+        // we can assume all pizzas come from the same restaurant, so we only have to consider the first one of any
+        // given order
+        DayOfWeek orderDate = order.getOrderDate().getDayOfWeek();
+        return Arrays.stream(restaurants)
+                .filter(restaurant -> Arrays.stream(restaurant.menu())
+                        .anyMatch(menuPizza -> menuPizza.name().equals(order.getPizzasInOrder()[0].name())))
+                .anyMatch(restaurant -> Arrays.asList(restaurant.openingDays()).contains(orderDate));
     }
 
     @Override
@@ -139,6 +177,12 @@ public class OrderValidator implements OrderValidation
         if(!correctTotal(orderToValidate, definedRestaurants))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
+            orderToValidate.setOrderStatus(OrderStatus.INVALID);
+            return orderToValidate;
+        }
+        if(!restaurantOpen(orderToValidate, definedRestaurants))
+        {
+            orderToValidate.setOrderValidationCode(OrderValidationCode.RESTAURANT_CLOSED);
             orderToValidate.setOrderStatus(OrderStatus.INVALID);
             return orderToValidate;
         }

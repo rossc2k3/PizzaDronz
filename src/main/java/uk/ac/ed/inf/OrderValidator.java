@@ -28,7 +28,7 @@ public class OrderValidator implements OrderValidation
      * @param order the order to be checked
      * @return true if 16 digit numeric, false otherwise
      */
-    public boolean cardNumValid(Order order)
+    private boolean cardNumValid(Order order)
     {
         if(order.getCreditCardInformation().getCreditCardNumber() == null)
         {
@@ -42,7 +42,7 @@ public class OrderValidator implements OrderValidation
      * @param order the order to be checked
      * @return true if 3 digit numeric, false otherwise
      */
-    public boolean cardCvvValid(Order order)
+    private boolean cardCvvValid(Order order)
     {
         if(order.getCreditCardInformation().getCvv() == null)
         {
@@ -60,7 +60,7 @@ public class OrderValidator implements OrderValidation
      * @return true if abides by above params, false otherwise
      */
 
-    public boolean cardDateValid(Order order)
+    private boolean cardDateValid(Order order)
     {
         if(order.getCreditCardInformation().getCreditCardExpiry() == null)
         {
@@ -92,7 +92,7 @@ public class OrderValidator implements OrderValidation
      * @return true is pizza in range, false otherwise
      */
 
-    public boolean pizzasInRange(Order order)
+    private boolean pizzasInRange(Order order)
     {
         return order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER && order.getPizzasInOrder().length >= 1;
     }
@@ -104,7 +104,7 @@ public class OrderValidator implements OrderValidation
      * @return true if all pizzas are found, false otherwise.
      */
 
-    public boolean pizzasExist(Order order, Restaurant[] restaurants)
+    private boolean pizzasExist(Order order, Restaurant[] restaurants)
     {
         Set<String> pizzaNames = Arrays.stream(order.getPizzasInOrder()).map(Pizza::name).collect(Collectors.toSet());
         Set<String> restaurantPizzas = Arrays.stream(restaurants).flatMap(restaurant-> Arrays.stream(restaurant.menu()))
@@ -119,7 +119,7 @@ public class OrderValidator implements OrderValidation
      * @param restaurants the list of restaurants to look for the pizzas in.
      * @return true if all pizzas match the location given in the first index, false otherwise.
      */
-    public boolean sameRestaurant(Order order, Restaurant[] restaurants)
+    private boolean sameRestaurant(Order order, Restaurant[] restaurants)
     {
 
         int[] pizzaLocations = new int[order.getPizzasInOrder().length];
@@ -152,7 +152,7 @@ public class OrderValidator implements OrderValidation
      * false otherwise
      */
 
-    public boolean correctTotal(Order order, Restaurant[] restaurants)
+    private boolean correctTotal(Order order, Restaurant[] restaurants)
     {
         int orderTotal = Arrays.stream(order.getPizzasInOrder())
                 .flatMap(orderPizza ->
@@ -175,7 +175,7 @@ public class OrderValidator implements OrderValidation
      * @param restaurants the list of restaurants to look for the pizzas in.
      * @return true if restaurant is open on given order date, false otherwise
      */
-    public boolean restaurantOpen(Order order, Restaurant[] restaurants)
+    private boolean restaurantOpen(Order order, Restaurant[] restaurants)
     {
         // we can assume all pizzas come from the same restaurant, so we only have to consider the first one of any
         // given order

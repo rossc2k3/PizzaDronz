@@ -5,14 +5,14 @@ import uk.ac.ed.inf.ilp.constant.OrderValidationCode;
 import uk.ac.ed.inf.ilp.constant.SystemConstants;
 import uk.ac.ed.inf.ilp.data.*;
 
-
+import java.io.IOException;
+import java.net.URL;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.concurrent.ThreadLocalRandom;
 
-
 public class TestIlpJar {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         System.out.println("ILP Test Application using the IlpDataObjects.jar file");
 
         var order = new Order();
@@ -66,7 +66,7 @@ public class TestIlpJar {
         var validatedOrder =
                 new OrderValidator().validateOrder(order,
                                 restaurants);
-
+        System.out.println(jsonParse.parseOrder());
         System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +
                 " and validation code: " + validatedOrder.getOrderValidationCode());
     }

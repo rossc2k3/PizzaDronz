@@ -8,10 +8,8 @@ import uk.ac.ed.inf.ilp.data.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 public class TestIlpJar {
     public static void main(String[] args) {
@@ -69,8 +67,6 @@ public class TestIlpJar {
                 new OrderValidator().validateOrder(order,
                                 restaurants);
 
-        System.out.println(order.getOrderDate());
-        System.out.println(order.getCreditCardInformation().getCreditCardExpiry());
         System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +
                 " and validation code: " + validatedOrder.getOrderValidationCode());
     }

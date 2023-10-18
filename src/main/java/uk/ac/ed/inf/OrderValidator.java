@@ -23,8 +23,11 @@ public class OrderValidator implements OrderValidation
 {
 
 
-
-
+    /**
+     * checks that the card number provided is *strictly* 16 digit numeric.
+     * @param order the order to be checked
+     * @return true if 16 digit numeric, false otherwise
+     */
     public boolean cardNumValid(Order order)
     {
         if(order.getCreditCardInformation().getCreditCardNumber() == null)
@@ -34,6 +37,11 @@ public class OrderValidator implements OrderValidation
         return order.getCreditCardInformation().getCreditCardNumber().matches("^[0-9]{16}$");
     }
 
+    /**
+     * checks that the cvv provided is *strictly* 3 digit numeric.
+     * @param order the order to be checked
+     * @return true if 3 digit numeric, false otherwise
+     */
     public boolean cardCvvValid(Order order)
     {
         if(order.getCreditCardInformation().getCvv() == null)
@@ -42,6 +50,15 @@ public class OrderValidator implements OrderValidation
         }
         return order.getCreditCardInformation().getCvv().matches("^[0-9]{3}$");
     }
+
+    /**
+     * checks that:
+     *      the date given is in format mm/yy.
+     *      the month is between 01 and 12, and the year is between 00 and 99.
+     *      the expiry is after the current date.
+     * @param order the order to be checked
+     * @return true if abides by above params, false otherwise
+     */
 
     public boolean cardDateValid(Order order)
     {
@@ -59,7 +76,6 @@ public class OrderValidator implements OrderValidation
         catch (ParseException e)
         {
             return false;
-            //throw new RuntimeException(e);
         }
 
         //need to format to LocalDate to be able to compare to "current date" (order date).
@@ -70,10 +86,23 @@ public class OrderValidator implements OrderValidation
                 && !formattedExpiryLocal.isBefore(currentDate);
     }
 
+    /**
+     * checks that there is atleast a pizza in the order and no more than the system max.
+     * @param order the order to be checked
+     * @return true is pizza in range, false otherwise
+     */
+
     public boolean pizzasInRange(Order order)
     {
-        return order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER;
+        return order.getPizzasInOrder().length <= SystemConstants.MAX_PIZZAS_PER_ORDER && order.getPizzasInOrder().length >= 1;
     }
+
+    /**
+     * checks that all the pizzas given in the order have valid names, i.e. can be found in a menu in a restaurant.
+     * @param order the order containing the pizzas to be checked
+     * @param restaurants the list of restaurants to look for the pizzas in
+     * @return true if all pizzas are found, false otherwise.
+     */
 
     public boolean pizzasExist(Order order, Restaurant[] restaurants)
     {
@@ -84,6 +113,12 @@ public class OrderValidator implements OrderValidation
     }
 
 
+    /**
+     * checks that all the pizzas are from the same restaurant. assumes all pizzas exist.
+     * @param order the order containing the pizzas to be checked
+     * @param restaurants the list of restaurants to look for the pizzas in.
+     * @return true if all pizzas match the location given in the first index, false otherwise.
+     */
     public boolean sameRestaurant(Order order, Restaurant[] restaurants)
     {
 
@@ -107,6 +142,16 @@ public class OrderValidator implements OrderValidation
         return Arrays.stream(pizzaLocations).allMatch(num -> num == pizzaLocations[0]);
     }
 
+    /**
+     * checks for each pizza that the price of the pizza in the order is the same as given in the restaurant.
+     * robust in the sense that it checks the price of each pizza individually as opposed to just checking the total
+     * price matches
+     * @param order the order in which the price is to be checked
+     * @param restaurants the list of restaurants to look for the pizzas in.
+     * @return true if all pizzas have matching price (and total == the total price of all pizzas + delivery charge),
+     * false otherwise
+     */
+
     public boolean correctTotal(Order order, Restaurant[] restaurants)
     {
         int orderTotal = Arrays.stream(order.getPizzasInOrder())
@@ -123,6 +168,13 @@ public class OrderValidator implements OrderValidation
     }
 
 
+    /**
+     * checks that the restaurant is open. makes the assumption that the pizzas are all coming from the same
+     * restaurant - not necessarily as robust as it could be but works for our purposes
+     * @param order the order to be checked
+     * @param restaurants the list of restaurants to look for the pizzas in.
+     * @return true if restaurant is open on given order date, false otherwise
+     */
     public boolean restaurantOpen(Order order, Restaurant[] restaurants)
     {
         // we can assume all pizzas come from the same restaurant, so we only have to consider the first one of any
@@ -134,6 +186,22 @@ public class OrderValidator implements OrderValidation
                 .anyMatch(restaurant -> Arrays.asList(restaurant.openingDays()).contains(orderDate));
     }
 
+    /**
+     * performs all checks as written above:
+     *  cardNumValid
+     *  cardCvvValid
+     *  cardDateValid
+     *  pizzasInRange
+     *  pizzasExist
+     *  correctTotal
+     *  sameRestaurant
+     *  restaurantOpen
+     * if all checks passed, set order status to valid but not delivered and
+     * set order validation code as no error. if invalid, set to invalid and corresponding error code.
+     * @param orderToValidate    the order to perform validation on
+     * @param definedRestaurants the restaurants passed in from the rest service
+     * @return the order, regardless of validity
+     */
     @Override
     public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)
     {
@@ -168,15 +236,15 @@ public class OrderValidator implements OrderValidation
             orderToValidate.setOrderStatus(OrderStatus.INVALID);
             return orderToValidate;
         }
-        if(!sameRestaurant(orderToValidate, definedRestaurants))
-        {
-            orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS);
-            orderToValidate.setOrderStatus(OrderStatus.INVALID);
-            return orderToValidate;
-        }
         if(!correctTotal(orderToValidate, definedRestaurants))
         {
             orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
+            orderToValidate.setOrderStatus(OrderStatus.INVALID);
+            return orderToValidate;
+        }
+        if(!sameRestaurant(orderToValidate, definedRestaurants))
+        {
+            orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS);
             orderToValidate.setOrderStatus(OrderStatus.INVALID);
             return orderToValidate;
         }
@@ -187,102 +255,11 @@ public class OrderValidator implements OrderValidation
             return orderToValidate;
         }
 
+        // if all checks are passed, we return the order as valid
+
         orderToValidate.setOrderValidationCode(OrderValidationCode.NO_ERROR);
         orderToValidate.setOrderStatus(OrderStatus.VALID_BUT_NOT_DELIVERED);
         return orderToValidate;
-
-
-
-
-        /*Boolean[] pizzaFound = new Boolean[orderToValidate.getPizzasInOrder().length];
-        Arrays.fill(pizzaFound, false);
-        int firstPizzaIn = 0;
-        int currentPizzaIn = 0;
-        boolean restaurantOpen = true;
-        boolean totalIsCorrect = true;
-        int orderTotal = 0;
-        */
-
-
-
-        // checks if all pizzas are valid, checks if pizza from more than one restaurant, checks if restaurant is open
-
-       /* for(int z = 0; z < orderToValidate.getPizzasInOrder().length && restaurantOpen && totalIsCorrect &&
-                orderToValidate.getOrderValidationCode() == OrderValidationCode.UNDEFINED; z++)
-        {
-            for (int x = 0; !pizzaFound[z] && x < definedRestaurants.length &&
-                    orderToValidate.getOrderValidationCode() == OrderValidationCode.UNDEFINED; x++)
-            {
-                for (int y = 0; y < definedRestaurants[x].menu().length; y++)
-                {
-
-                    if (orderToValidate.getPizzasInOrder()[z].name().equals(definedRestaurants[x].menu()[y].name()))
-                    {
-
-
-                        if(orderToValidate.getPizzasInOrder()[z].priceInPence() !=
-                                definedRestaurants[x].menu()[y].priceInPence())
-                        {
-                                orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
-                                totalIsCorrect = false;
-                                break;
-                        }
-                        else
-                        {
-                                orderTotal += orderToValidate.getPizzasInOrder()[z].priceInPence();
-                        }
-                        List<DayOfWeek> RestaurantDays = Arrays.stream(definedRestaurants[x].openingDays()).toList();
-                        if(!RestaurantDays.contains(orderToValidate.getOrderDate().getDayOfWeek()))
-                        {
-                            orderToValidate.setOrderValidationCode(OrderValidationCode.RESTAURANT_CLOSED);
-                            restaurantOpen = false;
-                            break;
-                        }
-
-                        if(z == 0)
-                        {
-                            firstPizzaIn = x;
-                        }
-                        currentPizzaIn = x;
-                        pizzaFound[z] = true;
-                        break;
-                    }
-                }
-            }
-            if(!pizzaFound[z])
-            {
-                orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_NOT_DEFINED);
-                break;
-            }
-            if (currentPizzaIn != firstPizzaIn)
-            {
-                orderToValidate.setOrderValidationCode(OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS);
-                break;
-            }
-
-        }
-
-
-        if(orderToValidate.getPriceTotalInPence() != orderTotal + SystemConstants.ORDER_CHARGE_IN_PENCE)
-        {
-            orderToValidate.setOrderValidationCode(OrderValidationCode.TOTAL_INCORRECT);
-        }
-        */
-
-
-        //if, by this point, there have been no changed to order code (no errors), set to no error code.
-        //set status to valid. if not, set order status to invalid.
-
-        /*if(orderToValidate.getOrderValidationCode().equals(OrderValidationCode.UNDEFINED))
-        {
-            orderToValidate.setOrderValidationCode(OrderValidationCode.NO_ERROR);
-            orderToValidate.setOrderStatus(OrderStatus.VALID_BUT_NOT_DELIVERED);
-        }
-        else
-        {
-            orderToValidate.setOrderStatus(OrderStatus.INVALID);
-        }
-        return orderToValidate;*/
     }
 
 

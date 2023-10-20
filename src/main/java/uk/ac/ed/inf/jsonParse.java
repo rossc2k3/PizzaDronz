@@ -1,52 +1,37 @@
 package uk.ac.ed.inf;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import com.google.gson.*;
+import java.lang.reflect.Type;
+
+import com.google.gson.reflect.TypeToken;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
+import uk.ac.ed.inf.ilp.gsonUtils.LocalDateDeserializer;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-
 public class jsonParse
 {
-    public static List<Order> parseOrder()
+     private Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
+            .create();
+
+    public List<Order> parseOrder() throws IOException
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        List<Order> parsedOrders = null;
 
-        try
-        {
-            String jsonOrders = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/orders"));
-            parsedOrders = mapper.readValue(jsonOrders, mapper.getTypeFactory().constructCollectionType(List.class, Order.class));
-            //parsedOrders = mapper.readValue(jsonOrders, new TypeReference<List<Order>>() {});
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return parsedOrders;
+        String jsonOrders = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/orders"));
+        Type listOrder = new TypeToken<ArrayList<Order>>(){}.getType();
+        return gson.fromJson(jsonOrders, listOrder);
     }
 
-    public static List<Restaurant> parseRestaurant()
+    public List<Restaurant> parseRestaurant() throws IOException
     {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        List<Restaurant> parsedRestaurants = null;
-
-        try
-        {
-            String jsonRestaurants = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/restaurants"));
-            parsedRestaurants = mapper.readValue(jsonRestaurants, new TypeReference<List<Restaurant>>() {});
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return parsedRestaurants;
+        String jsonRestaurants = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/restaurants"));
+        Type listRestaurant = new TypeToken<ArrayList<Restaurant>>(){}.getType();
+        return gson.fromJson(jsonRestaurants, listRestaurant);
     }
 }

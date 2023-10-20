@@ -2,8 +2,6 @@ package uk.ac.ed.inf;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -14,10 +12,9 @@ public class accessRest
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.connect();
-        int responsecode = conn.getResponseCode();
-        if (responsecode != 200)
+        if (conn.getResponseCode() != 200)
         {
-            throw new RuntimeException("HttpResponseCode: " + responsecode);
+            throw new RuntimeException("HttpResponseCode: " + conn.getResponseCode());
         }
         else
         {
@@ -27,7 +24,7 @@ public class accessRest
             //Write all the JSON data into a string using a scanner
             while (scanner.hasNext())
             {
-                inline +=scanner.nextLine();
+                inline += scanner.nextLine();
             }
 
             //Close the scanner

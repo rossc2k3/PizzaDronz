@@ -5,6 +5,8 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 
 import com.google.gson.reflect.TypeToken;
+import uk.ac.ed.inf.ilp.data.LngLat;
+import uk.ac.ed.inf.ilp.data.NamedRegion;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 import uk.ac.ed.inf.ilp.gsonUtils.LocalDateDeserializer;
@@ -16,22 +18,34 @@ import java.util.ArrayList;
 import java.util.List;
 public class jsonParse
 {
-     private Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
-            .create();
+    private final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).create();
 
-    public List<Order> parseOrder() throws IOException
+    public List<Order> parseOrder(String url) throws IOException
     {
-
-        String jsonOrders = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/orders"));
+        String jsonOrders = accessRest.accessURL(new URL(url + "/orders"));
         Type listOrder = new TypeToken<ArrayList<Order>>(){}.getType();
         return gson.fromJson(jsonOrders, listOrder);
     }
 
-    public List<Restaurant> parseRestaurant() throws IOException
+    public List<Restaurant> parseRestaurant(String url) throws IOException
     {
-        String jsonRestaurants = accessRest.accessURL(new URL("https://ilp-rest.azurewebsites.net/restaurants"));
+        String jsonRestaurants = accessRest.accessURL(new URL(url + "/restaurants"));
         Type listRestaurant = new TypeToken<ArrayList<Restaurant>>(){}.getType();
         return gson.fromJson(jsonRestaurants, listRestaurant);
     }
+
+    public List<LngLat> parseCentralCoords(String url) throws IOException
+    {
+        String jsonCoords = accessRest.accessURL(new URL(url + "/centralArea"));
+        Type listCoords = new TypeToken<ArrayList<LngLat>>(){}.getType();
+        return gson.fromJson(jsonCoords, listCoords);
+    }
+
+    public List<NamedRegion> parseNoFly(String url) throws IOException
+    {
+        String jsonNoFly = accessRest.accessURL(new URL(url + "/noFlyZones"));
+        Type listNoFly = new TypeToken<ArrayList<NamedRegion>>(){}.getType();
+        return gson.fromJson(jsonNoFly, listNoFly);
+    }
+
 }

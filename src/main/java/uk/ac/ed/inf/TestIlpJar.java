@@ -10,12 +10,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TestIlpJar
 {
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args)
     {
         //validating args; mainly concerned with the formatting of the date with some limiting for
         //a date actually existing (valid month). doesn't account for putting in the 31st date of
@@ -97,8 +96,6 @@ public class TestIlpJar
         var validatedOrder =
                 new OrderValidator().validateOrder(order,
                                 restaurants);
-        List<Order> orders = new jsonParse().parseOrder(args[1]);
-        System.out.println(orders);
         System.out.println("order validation resulted in status: " + validatedOrder.getOrderStatus() +
                 " and validation code: " + validatedOrder.getOrderValidationCode());
     }

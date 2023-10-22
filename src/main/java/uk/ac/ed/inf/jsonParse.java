@@ -18,30 +18,37 @@ import java.util.ArrayList;
 import java.util.List;
 public class jsonParse
 {
-    private final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).create();
+    private static final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).create();
 
-    public List<Order> parseOrder(String url) throws IOException
+    public static List<Order> parseOrder(String url, String date) throws IOException
     {
-        String jsonOrders = accessRest.accessURL(new URL(url + "/orders"));
+        String jsonOrders = accessRest.accessURL(new URL(url + "/orders/" + date));
         Type listOrder = new TypeToken<ArrayList<Order>>(){}.getType();
-        return gson.fromJson(jsonOrders, listOrder);
+        List<Order> parsedOrders = gson.fromJson(jsonOrders, listOrder);
+        if(parsedOrders.isEmpty())
+        {
+            //will happen if date given has no orders
+            System.err.println("There are no orders found in this list!");
+            System.exit(1);
+        }
+        return parsedOrders;
     }
 
-    public List<Restaurant> parseRestaurant(String url) throws IOException
+    public static List<Restaurant> parseRestaurant(String url) throws IOException
     {
         String jsonRestaurants = accessRest.accessURL(new URL(url + "/restaurants"));
         Type listRestaurant = new TypeToken<ArrayList<Restaurant>>(){}.getType();
         return gson.fromJson(jsonRestaurants, listRestaurant);
     }
 
-    public List<LngLat> parseCentralCoords(String url) throws IOException
+    public static List<LngLat> parseCentralCoords(String url) throws IOException
     {
         String jsonCoords = accessRest.accessURL(new URL(url + "/centralArea"));
         Type listCoords = new TypeToken<ArrayList<LngLat>>(){}.getType();
         return gson.fromJson(jsonCoords, listCoords);
     }
 
-    public List<NamedRegion> parseNoFly(String url) throws IOException
+    public static List<NamedRegion> parseNoFly(String url) throws IOException
     {
         String jsonNoFly = accessRest.accessURL(new URL(url + "/noFlyZones"));
         Type listNoFly = new TypeToken<ArrayList<NamedRegion>>(){}.getType();

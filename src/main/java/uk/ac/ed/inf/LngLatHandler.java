@@ -17,7 +17,7 @@ public class LngLatHandler implements LngLatHandling
      * @param endPosition       the longitude and latitude of the new coordinates
      * @return                  the distance between the two coordinates
      */
-    @Override
+
     public double distanceTo(LngLat startPosition, LngLat endPosition)
     {
         double longSquared = Math.pow((endPosition.lng() - startPosition.lng()), 2);

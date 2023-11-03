@@ -2,19 +2,19 @@ package uk.ac.ed.inf;
 
 
 import uk.ac.ed.inf.ilp.constant.OrderStatus;
+import uk.ac.ed.inf.ilp.data.LngLat;
+import uk.ac.ed.inf.ilp.data.NamedRegion;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.*;
 
-/**
- * Hello world!
- *
- */
 public class App 
 {
     public static void main(String[] args) throws IOException {
@@ -45,12 +45,56 @@ public class App
 
         List<Order> orders = jsonParse.parseOrder(site, date);
         List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
+        List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
+
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
 
         List<Order> validOrders = orders.stream()
                         .filter(order -> new OrderValidator().validateOrder(order, restaurantsArr).getOrderStatus() !=
                                 OrderStatus.VALID_BUT_NOT_DELIVERED)
                                 .toList();
+
+
+
+
+        //
+        // EVERYTHING UNDER HERE IS A MESS!!!!!!!!!!
+        //
+        //
+
+        aStar router = new aStar();
+
+        List<LngLat> coords;
+        LngLat start = new LngLat(-3.1870091,55.9443771);
+        LngLat end = new LngLat(	-3.1940174102783203, 55.94390696616939);
+
+        coords = router.aStarSearch(start, end, blockedRegions);
+
+
+        Gson gson = new Gson();
+        JsonObject lineString = new JsonObject();
+        lineString.addProperty("type", "LineString");
+
+        JsonArray coordinatesArray = new JsonArray();
+        for (LngLat lngLat : coords) {
+            JsonArray point = new JsonArray();
+            point.add(lngLat.lng());
+            point.add(lngLat.lat());
+            coordinatesArray.add(point);
+        }
+        lineString.add("coordinates", coordinatesArray);
+
+        // Create a GeoFeatureCollection with the LineString
+        GeoFeatureCollection featureCollection = new GeoFeatureCollection(lineString);
+
+        // Serialize the GeoFeatureCollection to GeoJSON using Gson
+        String geoJson = gson.toJson(featureCollection);
+
+        System.out.println(geoJson);
+
+
+
+
 
         System.out.println( "Hello World!" );
     }

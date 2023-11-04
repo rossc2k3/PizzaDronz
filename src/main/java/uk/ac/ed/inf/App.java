@@ -10,7 +10,9 @@ import uk.ac.ed.inf.ilp.data.Restaurant;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.*;
@@ -23,7 +25,8 @@ public class App
         //a month with only 30, this will get picked up by the URL not existing later on
         String date = args[0];
         String site = args[1];
-        if(!date.matches("^[0-9]{4}-([1][0-2]|[0][1-9])-(0[1-9]|[12][0-9]|3[01])$"))
+
+        if(!date.matches("^[0-9]{4}-(1[0-2]|0[1-9])-(0[1-9]|[12][0-9]|3[01])$"))
         {
             System.err.println("Error: The first argument must be a date in YYYY-mm-dd format.");
             System.exit(1);
@@ -43,58 +46,104 @@ public class App
             System.exit(1);
         }
 
+        //pulls needed data from the rest server (orders, restaurants, no-fly zones,
+        //central region location
+
         List<Order> orders = jsonParse.parseOrder(site, date);
         List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
         List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
-
+        LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
 
+        //create order validator object, then validates orders
+
+        OrderValidator validator = new OrderValidator();
+
         List<Order> validOrders = orders.stream()
-                        .filter(order -> new OrderValidator().validateOrder(order, restaurantsArr).getOrderStatus() !=
+                        .filter(order -> validator.validateOrder(order, restaurantsArr).getOrderStatus() ==
                                 OrderStatus.VALID_BUT_NOT_DELIVERED)
                                 .toList();
 
+        /*
+        creates object to store all flight paths, creates an a* router object,
+        routes the path for all valid orders. if order was delivered, mark as delivered
+        */
 
-
-
-        //
-        // EVERYTHING UNDER HERE IS A MESS!!!!!!!!!!
-        //
-        //
-
+        List<List<LngLat>> flightPaths = new ArrayList<>();
         aStar router = new aStar();
+        int flightCount = 0;
+        List<LngLat> flightPath = new ArrayList<>();
 
-        List<LngLat> coords;
-        LngLat start = new LngLat(-3.1870091,55.9443771);
-        LngLat end = new LngLat(	-3.1940174102783203, 55.94390696616939);
+        for(Order order : validOrders)
+        {
+            //flight to restaurant
+            Restaurant orderRestaurant = validator.getRestaurant(order, restaurantsArr);
+            flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
+            if(flightPath != null)
+            {
+                flightPaths.add(flightCount, flightPath);
+                flightCount += 1;
+            }
+            //flight back from restaurant. may need to actually route with a*
+            //instead of just reversing the forward path - come back to this
+            //flightPath = router.aStarSearch(orderRestaurant.location(), APPLETON, blockedRegions);
+            if(flightPath != null)
+            {
+                Collections.reverse(flightPaths);
+                flightPaths.add(flightCount, flightPath);
+                order.setOrderStatus(OrderStatus.DELIVERED);
+                flightCount += 1;
+            }
+        }
 
-        coords = router.aStarSearch(start, end, blockedRegions);
-
+        //writes flightpaths to geojson
 
         Gson gson = new Gson();
-        JsonObject lineString = new JsonObject();
-        lineString.addProperty("type", "LineString");
+        JsonObject geoJson = new JsonObject();
+        geoJson.addProperty("type", "FeatureCollection");
+        JsonArray featuresArray = new JsonArray();
 
-        JsonArray coordinatesArray = new JsonArray();
-        for (LngLat lngLat : coords) {
-            JsonArray point = new JsonArray();
-            point.add(lngLat.lng());
-            point.add(lngLat.lat());
-            coordinatesArray.add(point);
+        for (List<LngLat> path : flightPaths)
+        {
+            //create a Feature object for each flightpath
+            JsonObject feature = new JsonObject();
+            feature.addProperty("type", "Feature");
+
+            JsonObject geometry = new JsonObject();
+            geometry.addProperty("type", "LineString");
+
+            JsonArray coordinatesArray = new JsonArray();
+
+            for (LngLat lngLat : path)
+            {
+                JsonArray point = new JsonArray();
+                point.add(lngLat.lng());
+                point.add(lngLat.lat());
+                coordinatesArray.add(point);
+            }
+            geometry.add("coordinates", coordinatesArray);
+            feature.add("geometry", geometry);
+
+            feature.add("properties", new JsonObject());
+
+            featuresArray.add(feature);
         }
-        lineString.add("coordinates", coordinatesArray);
 
-        // Create a GeoFeatureCollection with the LineString
-        GeoFeatureCollection featureCollection = new GeoFeatureCollection(lineString);
+        geoJson.add("features", featuresArray);
+        String geoJsonStringDrone = gson.toJson(geoJson);
 
-        // Serialize the GeoFeatureCollection to GeoJSON using Gson
-        String geoJson = gson.toJson(featureCollection);
+        //order serialiser
 
-        System.out.println(geoJson);
+        Gson orderGson = new GsonBuilder().registerTypeAdapter(Order.class,
+                new OrderTypeAdapter()).create();
 
+        String jsonStringDeliveries = orderGson.toJson(validOrders);
+        jsonStringDeliveries = jsonStringDeliveries.replaceAll("},", "},\n");
 
-
-
+        //file creation
+        writer.fileWriter("drone", date, geoJsonStringDrone);
+        writer.fileWriter("deliveries", date, jsonStringDeliveries);
+        //writer.fileWriter("flightpath", date, jsonStringFlightPath
 
         System.out.println( "Hello World!" );
     }

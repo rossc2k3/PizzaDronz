@@ -187,6 +187,32 @@ public class OrderValidator implements OrderValidation
     }
 
     /**
+     * assumes you have already validated that all pizzas are from the same
+     * restaurant. takes restaurant name from first pizza found.
+     * @param order order containing the pizzas you want to find the restaurant for
+     * @param restaurants list of restaurants to find from
+     * @return the restaurant the pizzas are from
+     */
+
+    public Restaurant getRestaurant(Order order, Restaurant[] restaurants)
+    {
+        for (Restaurant restaurant : restaurants)
+        {
+            for (int y = 0; y < restaurant.menu().length; y++)
+            {
+
+                if (order.getPizzasInOrder()[0].name().equals(restaurant.menu()[y].name()))
+                {
+                    return restaurant;
+                }
+            }
+        }
+        //won't be reached, as this is only ever used when we know the restaurant is valid
+        return null;
+    }
+
+
+    /**
      * performs all checks as written above:
      *  cardNumValid
      *  cardCvvValid
@@ -202,6 +228,8 @@ public class OrderValidator implements OrderValidation
      * @param definedRestaurants the restaurants passed in from the rest service
      * @return the order, regardless of validity
      */
+
+
     @Override
     public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)
     {

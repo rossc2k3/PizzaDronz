@@ -8,15 +8,19 @@ import java.util.*;
 
 public class aStar
 {
-    double DIRECTIONS = 16;
-    LngLatHandler handler = new LngLatHandler();
+    private final double DIRECTIONS = 16;
+    private final double LATMIN = -90;
+    private final double LATMAX = 90;
+    private final double LNGMIN = -180;
+    private final double LNGMAX = 180;
+    private LngLatHandler handler = new LngLatHandler();
 
-    /*boolean isValid(LngLat location)
+    private boolean isValid(LngLat location)
     {
         return (location.lat() >= LATMIN && location.lat() <= LATMAX
                 && location.lng() >= LNGMIN && location.lng() <= LNGMAX);
-    }*/
-    boolean isUnblocked(LngLat location, List<NamedRegion> blockedRegions)
+    }
+    private boolean isUnblocked(LngLat location, List<NamedRegion> blockedRegions)
     {
         for(NamedRegion region : blockedRegions)
         {
@@ -28,26 +32,17 @@ public class aStar
         return true;
     }
 
-    boolean isDestination(LngLat location, LngLat destination)
-    {
-        return handler.isCloseTo(location, destination);
-    }
-
-    double calculateHValue(LngLat location, LngLat destination)
-    {
-        return handler.distanceTo(location, destination);
-    }
 
     public List<LngLat> aStarSearch(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
     {
-        /*if (!isValid(start))
+        if (!isValid(start))
         {
-            return;
+            return null;
         }
         if (!isValid(end))
         {
-            return;
-        }*/
+            return null;
+        }
         if(!isUnblocked(start, blockedRegions))
         {
             return null;
@@ -56,7 +51,7 @@ public class aStar
         {
              return null;
         }
-        if(isDestination(start, end))
+        if(handler.isCloseTo(start, end))
         {
             return null;
         }
@@ -64,16 +59,16 @@ public class aStar
         boolean invalidRegion = false;
         double minCost = Double.MAX_VALUE;
         List<LngLat> traversed = new ArrayList<LngLat>();
+        traversed.add(start);
+        HashMap<LngLat, Double> frontier = new HashMap<LngLat, Double>();
 
-        while(!isDestination(start, end))
+        while(!handler.isCloseTo(start, end))
         {
-            HashMap<LngLat, Double> frontier = new HashMap<LngLat, Double>();
+
             for (int i = 0; i < 360 / DIRECTIONS; i++)
             {
                 double angle = (360 / DIRECTIONS) * i;
                 LngLat potentialNeighbour = handler.nextPosition(start, angle);
-                //System.out.println("potential neighbour selected: " + potentialNeighbour.lng() + ", "
-                //        + potentialNeighbour.lat());
                 for (NamedRegion region : blockedRegions)
                 {
                     if (handler.isInRegion(potentialNeighbour, region))
@@ -84,9 +79,7 @@ public class aStar
                 }
                 if (!invalidRegion)
                 {
-                    //System.out.println("neighbour valid! added.");
-                    Double cost = Double.valueOf(handler.distanceTo(potentialNeighbour, end));
-                    //System.out.println("costs: " + cost);
+                    Double cost = handler.distanceTo(potentialNeighbour, end);
                     frontier.put(potentialNeighbour, cost);
                 }
                 else
@@ -98,8 +91,6 @@ public class aStar
 
             for (Map.Entry<LngLat, Double> entry : frontier.entrySet())
             {
-                System.out.println("selecting neighbour: " + entry.getKey().lat() + ", " +
-                        entry.getKey().lng());
                 LngLat coord = entry.getKey();
                 double cost = entry.getValue();
                 if(cost < minCost)

@@ -23,6 +23,11 @@ public class App
         //validating args; mainly concerned with the formatting of the date with some limiting for
         //a date actually existing (valid month). doesn't account for putting in the 31st date of
         //a month with only 30, this will get picked up by the URL not existing later on
+        if(args.length != 2)
+        {
+            System.err.println("Error: Please provide only a YYYY-mm-dd date and a URl as arguments.");
+            System.exit(1);
+        }
         String date = args[0];
         String site = args[1];
 
@@ -40,11 +45,7 @@ public class App
             System.err.println("Error: The second argument must be a valid URL.");
             System.exit(1);
         }
-        if(args.length != 2)
-        {
-            System.err.println("Error: Please provide only a YYYY-mm-dd date and a URl as arguments.");
-            System.exit(1);
-        }
+
 
         //pulls needed data from the rest server (orders, restaurants, no-fly zones,
         //central region location
@@ -70,7 +71,7 @@ public class App
         */
 
         List<List<LngLat>> flightPaths = new ArrayList<>();
-        aStar router = new aStar();
+        aStar2 router = new aStar2();
         int flightCount = 0;
         List<LngLat> flightPath = new ArrayList<>();
 
@@ -78,7 +79,7 @@ public class App
         {
             //flight to restaurant
             Restaurant orderRestaurant = validator.getRestaurant(order, restaurantsArr);
-            flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
+            flightPath = router.aStar2(APPLETON, orderRestaurant.location(), blockedRegions);
             if(flightPath != null)
             {
                 flightPaths.add(flightCount, flightPath);
@@ -98,22 +99,24 @@ public class App
 
         //writes flightpaths to geojson
 
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
         JsonObject geoJson = new JsonObject();
         geoJson.addProperty("type", "FeatureCollection");
+
         JsonArray featuresArray = new JsonArray();
+
+        //create a Feature object for each flightpath
+        JsonObject feature = new JsonObject();
+        feature.addProperty("type", "Feature");
+
+        JsonObject geometry = new JsonObject();
+        geometry.addProperty("type", "LineString");
+
+        JsonArray coordinatesArray = new JsonArray();
 
         for (List<LngLat> path : flightPaths)
         {
-            //create a Feature object for each flightpath
-            JsonObject feature = new JsonObject();
-            feature.addProperty("type", "Feature");
-
-            JsonObject geometry = new JsonObject();
-            geometry.addProperty("type", "LineString");
-
-            JsonArray coordinatesArray = new JsonArray();
-
             for (LngLat lngLat : path)
             {
                 JsonArray point = new JsonArray();
@@ -121,15 +124,15 @@ public class App
                 point.add(lngLat.lat());
                 coordinatesArray.add(point);
             }
-            geometry.add("coordinates", coordinatesArray);
-            feature.add("geometry", geometry);
-
-            feature.add("properties", new JsonObject());
-
-            featuresArray.add(feature);
         }
-
+        geometry.add("coordinates", coordinatesArray);
+        feature.add("properties", new JsonObject());
+        feature.add("geometry", geometry);
         geoJson.add("features", featuresArray);
+
+        featuresArray.add(feature);
+        geoJson.add("features", featuresArray);
+
         String geoJsonStringDrone = gson.toJson(geoJson);
 
         //order serialiser

@@ -65,7 +65,7 @@ public class aStar
         while(!handler.isCloseTo(start, end))
         {
 
-            for (int i = 0; i < 360 / DIRECTIONS; i++)
+            for (int i = 0; i < DIRECTIONS; i++)
             {
                 double angle = (360 / DIRECTIONS) * i;
                 LngLat potentialNeighbour = handler.nextPosition(start, angle);

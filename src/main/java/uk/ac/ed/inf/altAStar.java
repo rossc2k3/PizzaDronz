@@ -59,7 +59,6 @@ public class altAStar
             assert nodeWrapper != null;
             LngLat node = new LngLat(nodeWrapper.lng(), nodeWrapper.lat());
             shortestPathFound.add(node);
-            System.out.println(node);
             if(handler.isCloseTo(node, end))
             {
                 return buildPath(nodeWrapper);

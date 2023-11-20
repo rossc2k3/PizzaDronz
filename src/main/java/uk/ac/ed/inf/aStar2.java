@@ -58,7 +58,7 @@ public class aStar2
                 {
 
                     double newScore = next.getRouteScore() + handler.distanceTo(next.getCurrent(), potentialNeighbour);
-                    double estScore = handler.distanceTo(potentialNeighbour, end);
+                    double estScore = 1.5*handler.distanceTo(potentialNeighbour, end);
 
                     RouteNode nextNode = allNodes.getOrDefault(potentialNeighbour, new RouteNode(potentialNeighbour,
                                                                                     next.getCurrent(), newScore, estScore));

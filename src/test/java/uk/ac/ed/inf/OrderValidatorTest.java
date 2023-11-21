@@ -23,6 +23,7 @@ import java.util.Random;
  *  - only one error per test
  *  - we don't need to test order number validation
  */
+@SuppressWarnings("ALL")
 public class OrderValidatorTest extends TestCase
 {
     public static Random random = new Random();

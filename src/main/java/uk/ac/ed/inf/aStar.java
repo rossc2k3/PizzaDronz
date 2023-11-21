@@ -8,15 +8,14 @@ import java.util.*;
 
 public class aStar
 {
-    private final double DIRECTIONS = 16;
-    private final double LATMIN = -90;
-    private final double LATMAX = 90;
-    private final double LNGMIN = -180;
-    private final double LNGMAX = 180;
-    private LngLatHandler handler = new LngLatHandler();
+    private final LngLatHandler handler = new LngLatHandler();
 
     private boolean isValid(LngLat location)
     {
+        double LATMAX = 90;
+        double LATMIN = -90;
+        double LNGMIN = -180;
+        double LNGMAX = 180;
         return (location.lat() >= LATMIN && location.lat() <= LATMAX
                 && location.lng() >= LNGMIN && location.lng() <= LNGMAX);
     }
@@ -65,6 +64,7 @@ public class aStar
         while(!handler.isCloseTo(start, end))
         {
 
+            double DIRECTIONS = 16;
             for (int i = 0; i < DIRECTIONS; i++)
             {
                 double angle = (360 / DIRECTIONS) * i;

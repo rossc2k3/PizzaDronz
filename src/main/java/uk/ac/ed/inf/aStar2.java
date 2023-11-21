@@ -7,10 +7,10 @@ import java.util.*;
 
 public class aStar2
 {
-    int DIRECTIONS = 16;
+    final int DIRECTIONS = 16;
     boolean invalidRegion = false;
 
-    public List<LngLat> aStar2(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
+    public List<LngLat> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
     {
         LngLatHandler handler = new LngLatHandler();
 
@@ -20,6 +20,7 @@ public class aStar2
         RouteNode startNode = new RouteNode(start, null, 0d, 1.5 * handler.distanceTo(start, end), 999);
         openSet.add(startNode);
         allNodes.put(start, startNode);
+
 
         while(!openSet.isEmpty())
         {
@@ -34,13 +35,13 @@ public class aStar2
                 do
                 {
                     route.add(0, current.getCurrent());
-                    current = allNodes.get(current.getPrevious());
+                    current = current.getPrevious();
                 }
                 while(current != null);
                 return route;
             }
 
-            for(double angle = 0; angle < 360; angle += (360 / DIRECTIONS))
+            for(double angle = 0; angle < 360; angle += (360d / DIRECTIONS))
             {
                 LngLat potentialNeighbour = handler.nextPosition(next.getCurrent(), angle);
                 for(NamedRegion region : blockedRegions)

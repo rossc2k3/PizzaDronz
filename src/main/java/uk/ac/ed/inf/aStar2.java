@@ -12,23 +12,21 @@ public class aStar2
 
     public List<LngLat> aStar2(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
     {
-
-        List<LngLat> returnAnyway = new ArrayList<>();
-        returnAnyway.add(start);
-
-
         LngLatHandler handler = new LngLatHandler();
 
-        Queue<RouteNode> openSet = new PriorityQueue<>();
+        Queue<RouteNode> openSet = new PriorityQueue<>(Comparator.comparingDouble(RouteNode::heuristic));
         Map<LngLat, RouteNode> allNodes = new HashMap<>();
 
-        RouteNode startNode = new RouteNode(start, null, 0d, handler.distanceTo(start, end));
+        RouteNode startNode = new RouteNode(start, null, 0d, 1.5 * handler.distanceTo(start, end), 999);
         openSet.add(startNode);
         allNodes.put(start, startNode);
 
         while(!openSet.isEmpty())
         {
             RouteNode next = openSet.poll();
+
+            //if we've found our target:
+
             if(handler.isCloseTo(next.getCurrent(), end))
             {
                 List<LngLat> route = new ArrayList<>();
@@ -36,14 +34,13 @@ public class aStar2
                 do
                 {
                     route.add(0, current.getCurrent());
-
                     current = allNodes.get(current.getPrevious());
                 }
                 while(current != null);
                 return route;
             }
 
-            for(double angle = 0; angle < 360; angle += 22.5)
+            for(double angle = 0; angle < 360; angle += (360 / DIRECTIONS))
             {
                 LngLat potentialNeighbour = handler.nextPosition(next.getCurrent(), angle);
                 for(NamedRegion region : blockedRegions)
@@ -56,24 +53,15 @@ public class aStar2
                 }
                 if(!invalidRegion)
                 {
-
                     double newScore = next.getRouteScore() + handler.distanceTo(next.getCurrent(), potentialNeighbour);
                     double estScore = 1.5*handler.distanceTo(potentialNeighbour, end);
 
                     RouteNode nextNode = allNodes.getOrDefault(potentialNeighbour, new RouteNode(potentialNeighbour,
-                                                                                    next.getCurrent(), newScore, estScore));
+                                                                                    next, newScore, estScore, angle));
                     allNodes.put(potentialNeighbour, nextNode);
-                    if(newScore < nextNode.getRouteScore())
+                    if (!openSet.contains(nextNode))
                     {
-
-                        nextNode.setPrevious(next.getCurrent());
-                        nextNode.setRouteScore(newScore);
-                        nextNode.setEstimatedScore(newScore + handler.distanceTo(potentialNeighbour, end));
                         openSet.add(nextNode);
-
-
-
-                        returnAnyway.add(nextNode.getCurrent());
                     }
                 }
                 else
@@ -81,8 +69,9 @@ public class aStar2
                     invalidRegion = false;
                 }
             }
-
         }
-        return returnAnyway;
+        //if we didn't find a valid route to the target:
+
+        return null;
     }
 }

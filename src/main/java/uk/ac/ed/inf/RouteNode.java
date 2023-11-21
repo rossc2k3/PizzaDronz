@@ -2,24 +2,27 @@ package uk.ac.ed.inf;
 
 import uk.ac.ed.inf.ilp.data.LngLat;
 
-public class RouteNode implements Comparable<RouteNode>
+public class RouteNode
 {
     private final LngLat current;
-    private LngLat previous;
+    private RouteNode previous;
     private double routeScore;
     private double estimatedScore;
 
+    private double angle;
+
     RouteNode(LngLat current)
     {
-        this(current, null, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        this(current, null, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 999);
     }
 
-    RouteNode(LngLat current, LngLat previous, double routeScore, double estimatedScore)
+    RouteNode(LngLat current, RouteNode previous, double routeScore, double estimatedScore, double angle)
     {
         this.current = current;
         this.previous = previous;
         this.routeScore = routeScore;
         this.estimatedScore = estimatedScore;
+        this.angle = angle;
     }
 
     LngLat getCurrent()
@@ -27,7 +30,7 @@ public class RouteNode implements Comparable<RouteNode>
         return current;
     }
 
-    LngLat getPrevious()
+    RouteNode getPrevious()
     {
         return previous;
     }
@@ -42,7 +45,12 @@ public class RouteNode implements Comparable<RouteNode>
         return estimatedScore;
     }
 
-    void setPrevious(LngLat previous)
+    double getAngle()
+    {
+        return angle;
+    }
+
+    void setPrevious(RouteNode previous)
     {
         this.previous = previous;
     }
@@ -57,19 +65,13 @@ public class RouteNode implements Comparable<RouteNode>
         this.estimatedScore = estimatedScore;
     }
 
-    public int compareTo(RouteNode other)
+    void setAngle(double angle)
     {
-        if (this.estimatedScore > other.estimatedScore)
-        {
-            return 1;
-        }
-        else if (this.estimatedScore < other.estimatedScore)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
+        this.angle = angle;
+    }
+
+    double heuristic()
+    {
+        return routeScore + (1.5 * estimatedScore);
     }
 }

@@ -19,33 +19,12 @@ import com.google.gson.*;
 
 public class App 
 {
+    static LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
     public static void main(String[] args) throws IOException {
-        //validating args; mainly concerned with the formatting of the date with some limiting for
-        //a date actually existing (valid month). doesn't account for putting in the 31st date of
-        //a month with only 30, this will get picked up by the URL not existing later on
-        if(args.length != 2)
-        {
-            System.err.println("Error: Please provide only a YYYY-mm-dd date and a URl as arguments.");
-            System.exit(1);
-        }
+
+        ArgsValidator.argsValidate(args);
         String date = args[0];
         String site = args[1];
-
-        if(!date.matches("^[0-9]{4}-(1[0-2]|0[1-9])-(0[1-9]|[12][0-9]|3[01])$"))
-        {
-            System.err.println("Error: The first argument must be a date in YYYY-mm-dd format.");
-            System.exit(1);
-        }
-        try
-        {
-            new URL(site);
-        }
-        catch(MalformedURLException e)
-        {
-            System.err.println("Error: The second argument must be a valid URL.");
-            System.exit(1);
-        }
-
 
         //pulls needed data from the rest server (orders, restaurants, no-fly zones,
         //central region location
@@ -53,13 +32,11 @@ public class App
         List<Order> orders = jsonParse.parseOrder(site, date);
         List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
         List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
-        LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
 
         //create order validator object, then validates orders
 
         OrderValidator validator = new OrderValidator();
-
         List<Order> validOrders = orders.stream()
                         .filter(order -> validator.validateOrder(order, restaurantsArr).getOrderStatus() ==
                                 OrderStatus.VALID_BUT_NOT_DELIVERED)
@@ -71,31 +48,40 @@ public class App
         */
 
         List<List<LngLat>> flightPaths = new ArrayList<>();
-        aStar2 router = new aStar2();
+        aStar router = new aStar();
         int flightCount = 0;
-        List<LngLat> flightPath = new ArrayList<>();
+        List<LngLat> flightPath;
+        List<LngLat> reverse;
 
         for(Order order : validOrders)
         {
             //flight to restaurant
             Restaurant orderRestaurant = validator.getRestaurant(order, restaurantsArr);
-            flightPath = router.aStar2(APPLETON, orderRestaurant.location(), blockedRegions);
+            flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
             if(flightPath != null)
             {
                 flightPaths.add(flightCount, flightPath);
                 flightCount += 1;
-            }
-            //flight back from restaurant. may need to actually route with a*
-            //instead of just reversing the forward path - come back to this
-            //flightPath = router.aStarSearch(orderRestaurant.location(), APPLETON, blockedRegions);
-            if(flightPath != null)
-            {
-                Collections.reverse(flightPaths);
-                flightPaths.add(flightCount, flightPath);
-                order.setOrderStatus(OrderStatus.DELIVERED);
+
+                //now do the reverse flight
+                reverse = new ArrayList<>(flightPath);
+                Collections.reverse(reverse);
+                flightPaths.add(flightCount, reverse);
                 flightCount += 1;
+
+                System.out.println(reverse.equals(flightPath));
+                System.out.println(flightPath);
+                System.out.println(reverse);
             }
         }
+
+        /*Restaurant orderRestaurant = validator.getRestaurant(validOrders.get(0), restaurantsArr);
+        flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
+        flightPaths.add(0, flightPath);
+        reverse = new ArrayList<>(flightPath);
+        Collections.reverse(reverse);
+        flightPaths.add(1, reverse);*/
+
 
         //writes flightpaths to geojson
 

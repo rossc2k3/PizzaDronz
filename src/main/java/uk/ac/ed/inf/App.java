@@ -8,8 +8,7 @@ import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +18,7 @@ import com.google.gson.*;
 
 public class App 
 {
-    static LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
+    static final LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
     public static void main(String[] args) throws IOException {
 
         ArgsValidator.argsValidate(args);
@@ -48,8 +47,7 @@ public class App
         */
 
         List<List<LngLat>> flightPaths = new ArrayList<>();
-        aStar router = new aStar();
-        int flightCount = 0;
+        aStar2 router = new aStar2();
         List<LngLat> flightPath;
         List<LngLat> reverse;
 
@@ -57,69 +55,21 @@ public class App
         {
             //flight to restaurant
             Restaurant orderRestaurant = validator.getRestaurant(order, restaurantsArr);
-            flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
+            flightPath = router.aStarRouter(APPLETON, orderRestaurant.location(), blockedRegions);
             if(flightPath != null)
             {
-                flightPaths.add(flightCount, flightPath);
-                flightCount += 1;
+                flightPaths.add(flightPath);
 
                 //now do the reverse flight
                 reverse = new ArrayList<>(flightPath);
                 Collections.reverse(reverse);
-                flightPaths.add(flightCount, reverse);
-                flightCount += 1;
-
-                System.out.println(reverse.equals(flightPath));
-                System.out.println(flightPath);
-                System.out.println(reverse);
+                flightPaths.add(reverse);
             }
         }
-
-        /*Restaurant orderRestaurant = validator.getRestaurant(validOrders.get(0), restaurantsArr);
-        flightPath = router.aStarSearch(APPLETON, orderRestaurant.location(), blockedRegions);
-        flightPaths.add(0, flightPath);
-        reverse = new ArrayList<>(flightPath);
-        Collections.reverse(reverse);
-        flightPaths.add(1, reverse);*/
-
 
         //writes flightpaths to geojson
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        JsonObject geoJson = new JsonObject();
-        geoJson.addProperty("type", "FeatureCollection");
-
-        JsonArray featuresArray = new JsonArray();
-
-        //create a Feature object for each flightpath
-        JsonObject feature = new JsonObject();
-        feature.addProperty("type", "Feature");
-
-        JsonObject geometry = new JsonObject();
-        geometry.addProperty("type", "LineString");
-
-        JsonArray coordinatesArray = new JsonArray();
-
-        for (List<LngLat> path : flightPaths)
-        {
-            for (LngLat lngLat : path)
-            {
-                JsonArray point = new JsonArray();
-                point.add(lngLat.lng());
-                point.add(lngLat.lat());
-                coordinatesArray.add(point);
-            }
-        }
-        geometry.add("coordinates", coordinatesArray);
-        feature.add("properties", new JsonObject());
-        feature.add("geometry", geometry);
-        geoJson.add("features", featuresArray);
-
-        featuresArray.add(feature);
-        geoJson.add("features", featuresArray);
-
-        String geoJsonStringDrone = gson.toJson(geoJson);
+        String geoJsonStringDrone = GeoJsonCreator.geoCreate(flightPaths);
 
         //order serialiser
 
@@ -133,7 +83,5 @@ public class App
         writer.fileWriter("drone", date, geoJsonStringDrone);
         writer.fileWriter("deliveries", date, jsonStringDeliveries);
         //writer.fileWriter("flightpath", date, jsonStringFlightPath
-
-        System.out.println( "Hello World!" );
     }
 }

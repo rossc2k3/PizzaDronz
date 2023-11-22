@@ -10,9 +10,55 @@ public class aStar2
     final int DIRECTIONS = 16;
     boolean invalidRegion = false;
 
+    private final LngLatHandler handler = new LngLatHandler();
+
+    private boolean isValid(LngLat location)
+    {
+        //constants of map boundaries w.r.t latitude and longitude
+
+        final double LATMAX = 90;
+        final double LATMIN = -90;
+        final double LNGMIN = -180;
+        final double LNGMAX = 180;
+        return (location.lat() >= LATMIN && location.lat() <= LATMAX
+                && location.lng() >= LNGMIN && location.lng() <= LNGMAX);
+    }
+    private boolean isUnblocked(LngLat location, List<NamedRegion> blockedRegions)
+    {
+        for(NamedRegion region : blockedRegions)
+        {
+            if(handler.isInRegion(location, region))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public List<LngLat> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
     {
-        LngLatHandler handler = new LngLatHandler();
+
+        if (!isValid(start))
+        {
+            return null;
+        }
+        if (!isValid(end))
+        {
+            return null;
+        }
+        if(!isUnblocked(start, blockedRegions))
+        {
+            return null;
+        }
+        if(!isUnblocked(end, blockedRegions))
+        {
+            return null;
+        }
+        if(handler.isCloseTo(start, end))
+        {
+            return null;
+        }
+
 
         Queue<RouteNode> openSet = new PriorityQueue<>(Comparator.comparingDouble(RouteNode::heuristic));
         Map<LngLat, RouteNode> allNodes = new HashMap<>();
@@ -44,6 +90,7 @@ public class aStar2
             for(double angle = 0; angle < 360; angle += (360d / DIRECTIONS))
             {
                 LngLat potentialNeighbour = handler.nextPosition(next.getCurrent(), angle);
+
                 for(NamedRegion region : blockedRegions)
                 {
                     if(handler.isInRegion(potentialNeighbour, region))
@@ -52,6 +99,7 @@ public class aStar2
                         break;
                     }
                 }
+
                 if(!invalidRegion)
                 {
                     double newScore = next.getRouteScore() + handler.distanceTo(next.getCurrent(), potentialNeighbour);
@@ -60,6 +108,7 @@ public class aStar2
                     RouteNode nextNode = allNodes.getOrDefault(potentialNeighbour, new RouteNode(potentialNeighbour,
                                                                                     next, newScore, estScore, angle));
                     allNodes.put(potentialNeighbour, nextNode);
+
                     if (!openSet.contains(nextNode))
                     {
                         openSet.add(nextNode);
@@ -67,12 +116,12 @@ public class aStar2
                 }
                 else
                 {
+                    //if neighbour is invalid, reset invalidRegion value and check next
                     invalidRegion = false;
                 }
             }
         }
-        //if we didn't find a valid route to the target:
-
+        //if we didn't find a valid route to the target: (shouldn't ever be reached)
         return null;
     }
 }

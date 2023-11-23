@@ -1,6 +1,5 @@
 package uk.ac.ed.inf;
 
-
 import uk.ac.ed.inf.ilp.constant.OrderStatus;
 import uk.ac.ed.inf.ilp.data.LngLat;
 import uk.ac.ed.inf.ilp.data.NamedRegion;
@@ -8,8 +7,6 @@ import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 
 import java.io.IOException;
-
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

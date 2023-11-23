@@ -8,7 +8,6 @@ public class RouteNode
     private RouteNode previous;
     private double routeScore;
     private double estimatedScore;
-
     private double angle;
 
     RouteNode(LngLat current)

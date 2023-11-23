@@ -21,8 +21,6 @@ import java.util.stream.Collectors;
 
 public class OrderValidator implements OrderValidation
 {
-
-
     /**
      * checks that the card number provided is *strictly* 16 digit numeric.
      * @param order the order to be checked
@@ -211,7 +209,6 @@ public class OrderValidator implements OrderValidation
         return null;
     }
 
-
     /**
      * performs all checks as written above:
      *  cardNumValid
@@ -228,7 +225,6 @@ public class OrderValidator implements OrderValidation
      * @param definedRestaurants the restaurants passed in from the rest service
      * @return the order, regardless of validity
      */
-
 
     @Override
     public Order validateOrder(Order orderToValidate, Restaurant[] definedRestaurants)

@@ -2,8 +2,6 @@ package uk.ac.ed.inf;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Array;
-
 public class ArgsValidator
 {
     public static void argsValidate(String[] args)

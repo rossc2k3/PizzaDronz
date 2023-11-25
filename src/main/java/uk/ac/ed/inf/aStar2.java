@@ -9,7 +9,6 @@ public class aStar2
 {
     final int DIRECTIONS = 16;
     boolean invalidRegion = false;
-
     private final LngLatHandler handler = new LngLatHandler();
 
     private boolean isValid(LngLat location)
@@ -35,7 +34,7 @@ public class aStar2
         return true;
     }
 
-    public List<LngLat> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions)
+    public List<RouteNode> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions, NamedRegion centralArea)
     {
 
         if (!isValid(start))
@@ -76,11 +75,15 @@ public class aStar2
 
             if(handler.isCloseTo(next.getCurrent(), end))
             {
-                List<LngLat> route = new ArrayList<>();
+                List<RouteNode> route = new ArrayList<>();
+
+                //set reference angle to last node visited
+                next.setAngle(999);
+
                 RouteNode current = next;
                 do
                 {
-                    route.add(0, current.getCurrent());
+                    route.add(0, current);
                     current = current.getPrevious();
                 }
                 while(current != null);
@@ -90,6 +93,11 @@ public class aStar2
             for(double angle = 0; angle < 360; angle += (360d / DIRECTIONS))
             {
                 LngLat potentialNeighbour = handler.nextPosition(next.getCurrent(), angle);
+
+                if(!handler.isInCentralArea(next.getCurrent(), centralArea) && handler.isInCentralArea(potentialNeighbour, centralArea))
+                {
+                    invalidRegion = true;
+                }
 
                 for(NamedRegion region : blockedRegions)
                 {

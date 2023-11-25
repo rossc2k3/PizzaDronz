@@ -24,7 +24,7 @@ public class accessRest
         int connCode = conn.getResponseCode();
         if (connCode != 200)
         {
-            System.err.println("Error code" + connCode + ", please try check and try again.");
+            System.err.println("Error code" + connCode + ", please check and try again.");
             System.exit(1);
             throw new RuntimeException("HttpResponseCode: " + connCode);
         }

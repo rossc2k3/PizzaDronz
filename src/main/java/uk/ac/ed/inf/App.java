@@ -28,6 +28,7 @@ public class App
         List<Order> orders = jsonParse.parseOrder(site, date);
         List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
         List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
+        NamedRegion central = jsonParse.parseCentralRegion(site);
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
 
         //create order validator object, then validates orders
@@ -47,21 +48,43 @@ public class App
         aStar2 router = new aStar2();
         List<LngLat> flightPath;
         List<LngLat> reverse;
+        List<RouteNode> nodes;
+        List<FlightPath> fullPath = new ArrayList<>();
 
         for(Order order : validOrders)
         {
             //flight to restaurant
             Restaurant orderRestaurant = validator.getRestaurant(order, restaurantsArr);
-            flightPath = router.aStarRouter(APPLETON, orderRestaurant.location(), blockedRegions);
-            if(flightPath != null)
-            {
-                flightPaths.add(flightPath);
+            nodes = router.aStarRouter(APPLETON, orderRestaurant.location(), blockedRegions, central);
 
-                //now do the reverse flight
-                reverse = new ArrayList<>(flightPath);
-                Collections.reverse(reverse);
-                flightPaths.add(reverse);
+            for(int i = 1; i < nodes.size(); i++)
+            {
+                RouteNode prevNode = nodes.get(i);
+                LngLat prev = new LngLat(prevNode.getCurrent().lng(), prevNode.getCurrent().lat());
+                fullPath.add(new FlightPath(order, prev, nodes.get(i).getAngle(), nodes.get(i).getCurrent()));
             }
+
+            /*for (RouteNode node : nodes.subList(1, nodes.size()))
+            {
+                LngLat prev = new LngLat(node.getPrevious().getCurrent().lng(), node.getPrevious().getCurrent().lat());
+                fullPath.add(new FlightPath(order, prev, node.getAngle(), node.getCurrent()));
+            }*/
+
+            flightPath = nodes.stream().map(RouteNode::getCurrent).toList();
+            flightPaths.add(flightPath);
+
+            //now do the reverse flight
+            reverse = new ArrayList<>(flightPath);
+            Collections.reverse(reverse);
+            flightPaths.add(reverse);
+
+            Collections.reverse(nodes);
+            /*for (RouteNode node : nodes.subList(1, nodes.size()))
+            {
+                node.setAngle(node.getAngle() == 999 ? 999 : (node.getAngle() + 180) % 360);
+                LngLat prev = new LngLat(node.getPrevious().getCurrent().lng(), node.getPrevious().getCurrent().lat());
+                fullPath.add(new FlightPath(order, prev, node.getAngle(), node.getCurrent()));
+            }*/
         }
 
         //writes flightpaths to geojson
@@ -72,13 +95,18 @@ public class App
 
         Gson orderGson = new GsonBuilder().registerTypeAdapter(Order.class,
                 new OrderTypeAdapter()).create();
-
         String jsonStringDeliveries = orderGson.toJson(validOrders);
         jsonStringDeliveries = jsonStringDeliveries.replaceAll("},", "},\n");
+
+        Gson flightGson = new GsonBuilder().registerTypeAdapter(FlightPath.class,
+                new FlightTypeAdapter()).create();
+        String jsonStringFlightPath = orderGson.toJson(fullPath);
+        jsonStringFlightPath = jsonStringFlightPath.replaceAll("},", "},\n");
+
 
         //file creation
         writer.fileWriter("drone", date, geoJsonStringDrone);
         writer.fileWriter("deliveries", date, jsonStringDeliveries);
-        //writer.fileWriter("flightpath", date, jsonStringFlightPath
+        writer.fileWriter("flightpath", date, jsonStringFlightPath);
     }
 }

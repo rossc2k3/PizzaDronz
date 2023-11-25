@@ -5,7 +5,6 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 
 import com.google.gson.reflect.TypeToken;
-import uk.ac.ed.inf.ilp.data.LngLat;
 import uk.ac.ed.inf.ilp.data.NamedRegion;
 import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
@@ -41,11 +40,11 @@ public class jsonParse
         return gson.fromJson(jsonRestaurants, listRestaurant);
     }
 
-    public static List<LngLat> parseCentralCoords(String url) throws IOException
+    public static NamedRegion parseCentralRegion(String url) throws IOException
     {
-        String jsonCoords = accessRest.accessURL(new URL(url + "/centralArea"));
-        Type listCoords = new TypeToken<ArrayList<LngLat>>(){}.getType();
-        return gson.fromJson(jsonCoords, listCoords);
+        String jsonCentral = accessRest.accessURL(new URL(url + "/centralArea"));
+        Type centralRegion = new TypeToken<NamedRegion>(){}.getType();
+        return gson.fromJson(jsonCentral, centralRegion);
     }
 
     public static List<NamedRegion> parseNoFly(String url) throws IOException

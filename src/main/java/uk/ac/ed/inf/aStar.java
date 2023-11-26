@@ -5,9 +5,8 @@ import uk.ac.ed.inf.ilp.data.NamedRegion;
 
 import java.util.*;
 
-public class aStar2
+public class aStar
 {
-    final int DIRECTIONS = 16;
     boolean invalidRegion = false;
     private final LngLatHandler handler = new LngLatHandler();
 
@@ -37,6 +36,10 @@ public class aStar2
     public List<RouteNode> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions, NamedRegion centralArea)
     {
 
+        /*
+        making sure our start and endpoints are valid locations
+         */
+
         if (!isValid(start))
         {
             return null;
@@ -58,6 +61,9 @@ public class aStar2
             return null;
         }
 
+        /*
+        setup structures for path, nodes and first node
+         */
 
         Queue<RouteNode> openSet = new PriorityQueue<>(Comparator.comparingDouble(RouteNode::heuristic));
         Map<LngLat, RouteNode> allNodes = new HashMap<>();
@@ -69,6 +75,7 @@ public class aStar2
 
         while(!openSet.isEmpty())
         {
+            //select the next node from the queue based on the heuristic
             RouteNode next = openSet.poll();
 
             //if we've found our target:
@@ -77,7 +84,7 @@ public class aStar2
             {
                 List<RouteNode> route = new ArrayList<>();
 
-                //set reference angle to last node visited
+                //set reference angle for last node visited
                 next.setAngle(999);
 
                 RouteNode current = next;
@@ -90,9 +97,15 @@ public class aStar2
                 return route;
             }
 
+            int DIRECTIONS = 16;
             for(double angle = 0; angle < 360; angle += (360d / DIRECTIONS))
             {
                 LngLat potentialNeighbour = handler.nextPosition(next.getCurrent(), angle);
+
+                /*since we are only routing the drone from appleton to the restaurant (and then reversing this path),
+                the only illegal move related to the central area rule is when the first move is out of the area and the
+                second one is in it. so we check for this and flag it as invalid
+                 */
 
                 if(!handler.isInCentralArea(next.getCurrent(), centralArea) && handler.isInCentralArea(potentialNeighbour, centralArea))
                 {
@@ -110,6 +123,7 @@ public class aStar2
 
                 if(!invalidRegion)
                 {
+                    //add valid node to the open set and all nodes
                     double newScore = next.getRouteScore() + handler.distanceTo(next.getCurrent(), potentialNeighbour);
                     double estScore = 1.5*handler.distanceTo(potentialNeighbour, end);
 
@@ -130,6 +144,7 @@ public class aStar2
             }
         }
         //if we didn't find a valid route to the target: (shouldn't ever be reached)
+        System.err.println("Could not find a valid route.");
         return null;
     }
 }

@@ -5,7 +5,7 @@ import uk.ac.ed.inf.ilp.data.Order;
 
 public class FlightPath
 {
-    private String orderNo;
+    private final String orderNo;
     private double fromLongitude;
     private double fromLatitude;
     private double angle;
@@ -47,28 +47,4 @@ public class FlightPath
         return this.toLatitude;
     }
 
-    void setOrderNo(String orderNo)
-    {
-        this.orderNo = orderNo;
-    }
-    void setFromLongitude(double longitude)
-    {
-        this.fromLongitude = longitude;
-    }
-    void setFromLatitude(double latitude)
-    {
-        this.fromLatitude = latitude;
-    }
-    void setAngle(double angle)
-    {
-        this.angle = angle;
-    }
-    void setToLongitude(double longitude)
-    {
-        this.toLongitude = longitude;
-    }
-    void setToLatitude(double latitude)
-    {
-        this.toLatitude = latitude;
-    }
 }

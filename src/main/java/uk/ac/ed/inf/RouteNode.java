@@ -10,10 +10,6 @@ public class RouteNode
     private double estimatedScore;
     private double angle;
 
-    RouteNode(LngLat current)
-    {
-        this(current, null, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, 999);
-    }
 
     RouteNode(LngLat current, RouteNode previous, double routeScore, double estimatedScore, double angle)
     {
@@ -49,6 +45,7 @@ public class RouteNode
         return angle;
     }
 
+
     void setPrevious(RouteNode previous)
     {
         this.previous = previous;
@@ -68,6 +65,7 @@ public class RouteNode
     {
         this.angle = angle;
     }
+
 
     double heuristic()
     {

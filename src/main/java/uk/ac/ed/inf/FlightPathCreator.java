@@ -13,7 +13,7 @@ import java.util.List;
 
 public class FlightPathCreator
 {
-    private static final LngLat APPLETON = new LngLat(-3.1870091,55.9443771);
+    private static final LngLat APPLETON = new LngLat(-3.186874,55.944494);
     public static Pair<List<List<LngLat>>, List<FlightPath>> createFlightPath(List<Order> validOrders, Restaurant[] restaurantsArr,
                                                                               List<NamedRegion> blockedRegions, NamedRegion central)
     {

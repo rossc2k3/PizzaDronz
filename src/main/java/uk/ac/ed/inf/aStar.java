@@ -97,6 +97,7 @@ public class aStar
                 return route;
             }
 
+
             int DIRECTIONS = 16;
             for(double angle = 0; angle < 360; angle += (360d / DIRECTIONS))
             {
@@ -124,6 +125,7 @@ public class aStar
                 if(!invalidRegion)
                 {
                     //add valid node to the open set and all nodes
+
                     double newScore = next.getRouteScore() + handler.distanceTo(next.getCurrent(), potentialNeighbour);
                     double estScore = 1.5*handler.distanceTo(potentialNeighbour, end);
 

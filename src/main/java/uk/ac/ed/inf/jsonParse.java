@@ -40,6 +40,7 @@ public class jsonParse
         return gson.fromJson(jsonRestaurants, listRestaurant);
     }
 
+    //Take Annas code
     public static NamedRegion parseCentralRegion(String url) throws IOException
     {
         String jsonCentral = accessRest.accessURL(new URL(url + "/centralArea"));

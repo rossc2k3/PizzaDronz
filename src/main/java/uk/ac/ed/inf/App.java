@@ -8,6 +8,7 @@ import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.List;
 
 import com.google.gson.*;
@@ -16,6 +17,20 @@ public class App
 {
     public static void main(String[] args) throws IOException {
 
+        /**
+         * Critique
+         * - No packages - suggested
+         * - Wasted
+         * - Inconistent naming conventions = capitaise
+         *  - Writer
+         *  - aStar
+         *  - FlightPath
+         *  - Rename FlightPathCreator
+         *  - INVALID Method in aStar
+         *  HELL NO BIG BOO BOO NO NO NO DONT CALL A* FOR EVERY ORDER
+         * jsonParse
+         * G
+         */
         ArgsValidator.argsValidate(args);
         String date = args[0];
         String site = args[1];
@@ -27,6 +42,8 @@ public class App
         List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
         List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
         NamedRegion central = jsonParse.parseCentralRegion(site);
+
+        //Fix name
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
 
         //create order validator object, then validates orders
@@ -41,6 +58,7 @@ public class App
         creates object to store all flight paths, creates an a* router object,
         routes the path for all valid orders. if order was delivered, mark as delivered
         */
+
 
         Pair<List<List<LngLat>>, List<FlightPath>> pathData = FlightPathCreator.createFlightPath(
                 validOrders, restaurantsArr, blockedRegions, central);
@@ -57,6 +75,11 @@ public class App
         Gson orderGson = new GsonBuilder().registerTypeAdapter(Order.class,
                 new OrderTypeAdapter()).create();
         String jsonStringDeliveries = orderGson.toJson(validOrders);
+
+        /**
+         * Go find a better way to do
+         *
+         */
         jsonStringDeliveries = jsonStringDeliveries.replaceAll("},", "},\n");
 
         //flightpath serialiser
@@ -64,7 +87,11 @@ public class App
         Gson flightGson = new GsonBuilder().registerTypeAdapter(FlightPath.class,
                 new FlightTypeAdapter()).create();
         String jsonStringFlightPath = flightGson.toJson(fullPath);
+
+        //no
         jsonStringFlightPath = jsonStringFlightPath.replaceAll("},", "},\n");
+
+      //  writer mywriter = new writer(date);
 
 
         //file creation

@@ -8,29 +8,24 @@ import uk.ac.ed.inf.ilp.data.Order;
 import uk.ac.ed.inf.ilp.data.Restaurant;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 
 import com.google.gson.*;
+import uk.ac.ed.inf.io.GeoJsonCreator;
+import uk.ac.ed.inf.io.OutputWrite;
+import uk.ac.ed.inf.order.OrderTypeAdapter;
+import uk.ac.ed.inf.order.OrderValidator;
+import uk.ac.ed.inf.pathing.FlightMove;
+import uk.ac.ed.inf.pathing.FlightPathCreator;
+import uk.ac.ed.inf.pathing.FlightTypeAdapter;
+import uk.ac.ed.inf.setup.ArgsValidator;
+import uk.ac.ed.inf.setup.JsonParser;
 
 public class App 
 {
     public static void main(String[] args) throws IOException {
 
-        /**
-         * Critique
-         * - No packages - suggested
-         * - Wasted
-         * - Inconistent naming conventions = capitaise
-         *  - Writer
-         *  - aStar
-         *  - FlightPath
-         *  - Rename FlightPathCreator
-         *  - INVALID Method in aStar
-         *  HELL NO BIG BOO BOO NO NO NO DONT CALL A* FOR EVERY ORDER
-         * jsonParse
-         * G
-         */
+
         ArgsValidator.argsValidate(args);
         String date = args[0];
         String site = args[1];
@@ -38,10 +33,10 @@ public class App
         //pulls needed data from the rest server (orders, restaurants, no-fly zones,
         //central region location
 
-        List<Order> orders = jsonParse.parseOrder(site, date);
-        List<Restaurant> restaurants = jsonParse.parseRestaurant(site);
-        List<NamedRegion> blockedRegions = jsonParse.parseNoFly(site);
-        NamedRegion central = jsonParse.parseCentralRegion(site);
+        List<Order> orders = JsonParser.parseOrder(site, date);
+        List<Restaurant> restaurants = JsonParser.parseRestaurant(site);
+        List<NamedRegion> blockedRegions = JsonParser.parseNoFly(site);
+        NamedRegion central = JsonParser.parseCentralRegion(site);
 
         //Fix name
         Restaurant[] restaurantsArr = restaurants.toArray(new Restaurant[0]);
@@ -60,11 +55,11 @@ public class App
         */
 
 
-        Pair<List<List<LngLat>>, List<FlightPath>> pathData = FlightPathCreator.createFlightPath(
+        Pair<List<List<LngLat>>, List<FlightMove>> pathData = FlightPathCreator.createFlightPath(
                 validOrders, restaurantsArr, blockedRegions, central);
 
         List<List<LngLat>> flightPaths = pathData.getValue0();
-        List<FlightPath> fullPath = pathData.getValue1();
+        List<FlightMove> fullPath = pathData.getValue1();
 
         //writes flightpaths to geojson
 
@@ -75,16 +70,11 @@ public class App
         Gson orderGson = new GsonBuilder().registerTypeAdapter(Order.class,
                 new OrderTypeAdapter()).create();
         String jsonStringDeliveries = orderGson.toJson(validOrders);
-
-        /**
-         * Go find a better way to do
-         *
-         */
         jsonStringDeliveries = jsonStringDeliveries.replaceAll("},", "},\n");
 
         //flightpath serialiser
 
-        Gson flightGson = new GsonBuilder().registerTypeAdapter(FlightPath.class,
+        Gson flightGson = new GsonBuilder().registerTypeAdapter(FlightMove.class,
                 new FlightTypeAdapter()).create();
         String jsonStringFlightPath = flightGson.toJson(fullPath);
 
@@ -95,8 +85,8 @@ public class App
 
 
         //file creation
-        writer.fileWriter("drone", date, geoJsonStringDrone);
-        writer.fileWriter("deliveries", date, jsonStringDeliveries);
-        writer.fileWriter("flightpath", date, jsonStringFlightPath);
+        OutputWrite.fileWriter("drone", date, geoJsonStringDrone);
+        OutputWrite.fileWriter("deliveries", date, jsonStringDeliveries);
+        OutputWrite.fileWriter("flightpath", date, jsonStringFlightPath);
     }
 }

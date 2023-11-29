@@ -1,20 +1,14 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.io;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class writer
+public class OutputWrite
 {
-    //private final LocalDateTime date;
-  /*  public writer(LocalDateTime orderDate){
-        date = orderDate;
-    } */
     public static void fileWriter(String fileName, String date, String geoJsonToWrite)
     {
         String directory = "resultfiles";
@@ -37,7 +31,8 @@ public class writer
         }
         catch(IOException e)
         {
-            e.printStackTrace();
+            System.err.println("Failed to write file.");
+            System.exit(1);
         }
     }
 }

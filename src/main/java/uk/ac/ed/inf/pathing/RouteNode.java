@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.pathing;
 
 import uk.ac.ed.inf.ilp.data.LngLat;
 
@@ -35,30 +35,9 @@ public class RouteNode
         return routeScore;
     }
 
-    double getEstimatedScore()
-    {
-        return estimatedScore;
-    }
-
     double getAngle()
     {
         return angle;
-    }
-
-
-    void setPrevious(RouteNode previous)
-    {
-        this.previous = previous;
-    }
-
-    void setRouteScore(double routeScore)
-    {
-        this.routeScore = routeScore;
-    }
-
-    void setEstimatedScore(double estimatedScore)
-    {
-        this.estimatedScore = estimatedScore;
     }
 
     void setAngle(double angle)

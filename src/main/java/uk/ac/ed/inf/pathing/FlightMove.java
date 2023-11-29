@@ -1,9 +1,9 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.pathing;
 
 import uk.ac.ed.inf.ilp.data.LngLat;
 import uk.ac.ed.inf.ilp.data.Order;
 
-public class FlightPath
+public class FlightMove
 {
     private final String orderNo;
     private double fromLongitude;
@@ -12,7 +12,7 @@ public class FlightPath
     private double toLongitude;
     private double toLatitude;
 
-    FlightPath(Order order, LngLat from, double angle, LngLat to)
+    FlightMove(Order order, LngLat from, double angle, LngLat to)
     {
         this.orderNo = order.getOrderNo();
         this.fromLongitude = from.lng();

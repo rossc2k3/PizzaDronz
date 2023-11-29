@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.order;
 
 
 import uk.ac.ed.inf.ilp.constant.OrderStatus;

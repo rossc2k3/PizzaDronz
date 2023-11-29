@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.io;
 
 
 import com.google.gson.JsonObject;

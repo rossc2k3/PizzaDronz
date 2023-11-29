@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.setup;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -6,11 +6,12 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class accessRest
+public class AccessRest
 {
     public static String accessURL(URL url) throws IOException
     {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
         try
         {
             conn.setRequestMethod("GET");
@@ -21,6 +22,7 @@ public class accessRest
             System.err.println("Unknown URL, please check and try again.");
             System.exit(1);
         }
+
         int connCode = conn.getResponseCode();
         if (connCode != 200)
         {

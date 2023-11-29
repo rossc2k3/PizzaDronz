@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.pathing;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -6,9 +6,9 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class FlightTypeAdapter extends TypeAdapter<FlightPath>
+public class FlightTypeAdapter extends TypeAdapter<FlightMove>
 {
-    public void write(JsonWriter out, FlightPath flight) throws IOException
+    public void write(JsonWriter out, FlightMove flight) throws IOException
     {
         out.beginObject();
         out.name("orderNo").value(flight.getOrderNo());
@@ -21,7 +21,7 @@ public class FlightTypeAdapter extends TypeAdapter<FlightPath>
     }
 
     @Override
-    public FlightPath read(JsonReader jsonReader)
+    public FlightMove read(JsonReader jsonReader)
     {
         // don't need this
         return null;

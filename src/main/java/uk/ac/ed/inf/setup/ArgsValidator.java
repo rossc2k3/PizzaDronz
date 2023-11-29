@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.setup;
 
 import java.net.MalformedURLException;
 import java.net.URL;

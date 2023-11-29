@@ -1,4 +1,4 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.setup;
 
 
 import com.google.gson.*;
@@ -15,13 +15,13 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-public class jsonParse
+public class JsonParser
 {
     private static final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateDeserializer()).create();
 
     public static List<Order> parseOrder(String url, String date) throws IOException
     {
-        String jsonOrders = accessRest.accessURL(new URL(url + "/orders/" + date));
+        String jsonOrders = AccessRest.accessURL(new URL(url + "/orders/" + date));
         Type listOrder = new TypeToken<ArrayList<Order>>(){}.getType();
         List<Order> parsedOrders = gson.fromJson(jsonOrders, listOrder);
         if(parsedOrders.isEmpty())
@@ -35,22 +35,21 @@ public class jsonParse
 
     public static List<Restaurant> parseRestaurant(String url) throws IOException
     {
-        String jsonRestaurants = accessRest.accessURL(new URL(url + "/restaurants"));
+        String jsonRestaurants = AccessRest.accessURL(new URL(url + "/restaurants"));
         Type listRestaurant = new TypeToken<ArrayList<Restaurant>>(){}.getType();
         return gson.fromJson(jsonRestaurants, listRestaurant);
     }
 
-    //Take Annas code
     public static NamedRegion parseCentralRegion(String url) throws IOException
     {
-        String jsonCentral = accessRest.accessURL(new URL(url + "/centralArea"));
+        String jsonCentral = AccessRest.accessURL(new URL(url + "/centralArea"));
         Type centralRegion = new TypeToken<NamedRegion>(){}.getType();
         return gson.fromJson(jsonCentral, centralRegion);
     }
 
     public static List<NamedRegion> parseNoFly(String url) throws IOException
     {
-        String jsonNoFly = accessRest.accessURL(new URL(url + "/noFlyZones"));
+        String jsonNoFly = AccessRest.accessURL(new URL(url + "/noFlyZones"));
         Type listNoFly = new TypeToken<ArrayList<NamedRegion>>(){}.getType();
         return gson.fromJson(jsonNoFly, listNoFly);
     }

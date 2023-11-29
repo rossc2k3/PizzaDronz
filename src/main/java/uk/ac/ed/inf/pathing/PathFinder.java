@@ -1,11 +1,11 @@
-package uk.ac.ed.inf;
+package uk.ac.ed.inf.pathing;
 
 import uk.ac.ed.inf.ilp.data.LngLat;
 import uk.ac.ed.inf.ilp.data.NamedRegion;
 
 import java.util.*;
 
-public class aStar
+public class PathFinder
 {
     boolean invalidRegion = false;
     private final LngLatHandler handler = new LngLatHandler();
@@ -33,11 +33,11 @@ public class aStar
         return true;
     }
 
-    public List<RouteNode> aStarRouter(LngLat start, LngLat end, List<NamedRegion> blockedRegions, NamedRegion centralArea)
+    public List<RouteNode> routeFind(LngLat start, LngLat end, List<NamedRegion> blockedRegions, NamedRegion centralArea)
     {
 
         /*
-        making sure our start and endpoints are valid locations
+        making sure our start and endpoints are valid locations. not strictly necessary in our testing but to be robust
          */
 
         if (!isValid(start))
